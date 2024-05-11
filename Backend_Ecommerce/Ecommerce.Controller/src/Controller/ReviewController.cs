@@ -11,25 +11,29 @@ namespace Ecommerce.Controller.src.Controller
     [Route("api/v1/reviews")]
     public class ReviewController : ControllerBase
     {
-        private IReviewService _service;
-        private IAuthorizationService _authorizationService;
+        private readonly IReviewService _service;
+        private readonly IAuthorizationService _authorizationService;
+
         public ReviewController(IReviewService service, IAuthorizationService authorizationService)
         {
             _service = service;
             _authorizationService = authorizationService;
         }
 
+        #region Main Features
         [AllowAnonymous]
         [HttpGet()]
-        public async Task<IEnumerable<ReviewReadDto>> GetAllReviewsAsync([FromQuery] BaseQueryOptions options)
+        public async Task<ActionResult<IEnumerable<ReviewReadDto>>> GetAllReviewsAsync([FromQuery] BaseQueryOptions options)
         {
-            return await _service.GetAllReviewsAsync(options); // Will be modified later
+            var reviews = await _service.GetAllReviewsAsync(options);
+            return Ok(reviews);
         }
 
         [HttpGet("product/{productId}")]
-        public async Task<IEnumerable<ReviewReadDto>> GetAllReviewsOfProductAsync([FromQuery] Guid productId)
+        public async Task<ActionResult<IEnumerable<ReviewReadDto>>> GetAllReviewsOfProductAsync([FromQuery] Guid productId)
         {
-            return await _service.GetAllReviewsOfProductAsync(productId); // Will be modified later
+            var reviews = await _service.GetAllReviewsOfProductAsync(productId);
+            return Ok(reviews);
         }
 
         // Customer auth = CreateAReview's Customer auth or Admin
@@ -37,7 +41,6 @@ namespace Ecommerce.Controller.src.Controller
         [HttpGet("{reviewId}")]
         public async Task<ActionResult<ReviewReadDto>> GetReviewByIdAsync([FromRoute] Guid reviewId)
         {
-
             var review = await _service.GetReviewByIdAsync(reviewId);
             var authResult = await _authorizationService.AuthorizeAsync(HttpContext.User, review, "AdminOrOwnerReview");
 
@@ -56,31 +59,47 @@ namespace Ecommerce.Controller.src.Controller
 
         [Authorize]
         [HttpPost()]
-        public async Task<ReviewReadDto> CreateReviewAsync([FromBody] ReviewCreateDto reviewCreateDto)
+        public async Task<ActionResult<ReviewReadDto>> CreateReviewAsync([FromBody] ReviewCreateDto reviewCreateDto)
         {
             var userId = GetUserIdClaim();
-            return await _service.CreateReviewAsync(userId, reviewCreateDto); // Will be modified later
+            return Ok(await _service.CreateReviewAsync(userId, reviewCreateDto));
         }
 
         // Customer auth = CreateAReview's Customer auth or Admin
-        // Implement for admin first
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         [HttpPatch("{reviewId}")]
-        public async Task<ReviewReadDto> UpdateReviewByIdAsync([FromRoute] Guid reviewId, [FromBody] ReviewUpdateDto reviewUpdateDto)
+        public async Task<ActionResult<ReviewReadDto>> UpdateReviewByIdAsync([FromRoute] Guid reviewId, [FromBody] ReviewUpdateDto reviewUpdateDto)
         {
-            reviewUpdateDto.ReviewId = reviewId; // If review is found...
-            return await _service.UpdateReviewByIdAsync(reviewId, reviewUpdateDto); // Will be modified later
+            reviewUpdateDto.ReviewId = reviewId;
+            var review = await _service.GetReviewByIdAsync(reviewId);
+            var authResult = await _authorizationService.AuthorizeAsync(HttpContext.User, review, "AdminOrOwnerReview");
+
+            if (!authResult.Succeeded)
+            {
+                return Forbid();
+            }
+
+            return Ok(await _service.UpdateReviewByIdAsync(reviewId, reviewUpdateDto));
         }
 
         // Customer auth = CreateAReview's Customer auth or Admin
-        // Implement for admin first
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         [HttpDelete("{reviewId}")]
-        public async Task<bool> DeleteReviewByIdAsync([FromRoute] Guid reviewId)
+        public async Task<ActionResult<bool>> DeleteReviewByIdAsync([FromRoute] Guid reviewId)
         {
-            return await _service.DeleteReviewByIdAsync(reviewId); // Will be modified later
-        }
+            var review = await _service.GetReviewByIdAsync(reviewId);
+            var authResult = await _authorizationService.AuthorizeAsync(HttpContext.User, review, "AdminOrOwnerReview");
 
+            if (!authResult.Succeeded)
+            {
+                return Forbid();
+            }
+
+            return Ok(await _service.DeleteReviewByIdAsync(reviewId));
+        }
+        #endregion
+
+        #region Helper Methods
         private Guid GetUserIdClaim()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -94,5 +113,6 @@ namespace Ecommerce.Controller.src.Controller
             }
             return userId;
         }
+        #endregion
     }
 }
