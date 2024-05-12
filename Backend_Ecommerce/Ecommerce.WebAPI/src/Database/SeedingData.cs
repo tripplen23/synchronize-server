@@ -1,7 +1,8 @@
 using Ecommerce.Core.src.Entity;
 using Ecommerce.Core.src.ValueObject;
 using Ecommerce.Service.src.ServiceAbstract;
-using Ecommerce.WebAPI.src.Service;
+using Ecommerce.WebAPI.src.ExternalService;
+using Microsoft.AspNetCore.Mvc.TagHelpers;
 
 namespace Ecommerce.WebAPI.src.Database
 {
@@ -21,53 +22,89 @@ namespace Ecommerce.WebAPI.src.Database
         private static int RandomNumber2 = GetRandomNumber();
         private static int RandomNumber3 = GetRandomNumber();
         private static int RandomNumber4 = GetRandomNumber();
-        private static int RandomNumber5 = GetRandomNumber();
-        private static int RandomNumber6 = GetRandomNumber();
 
         #region Categories
         private static Category category1 = new Category
         {
             Id = Guid.NewGuid(),
-            Name = "Electronic",
+            Name = "Men",
             Image = $"https://picsum.photos/200/?random={RandomNumber1}"
         };
         private static Category category2 = new Category
         {
             Id = Guid.NewGuid(),
-            Name = "Clothing",
+            Name = "Women",
             Image = $"https://picsum.photos/200/?random={RandomNumber2}"
         };
         private static Category category3 = new Category
         {
             Id = Guid.NewGuid(),
-            Name = "Furniture",
+            Name = "Electronics",
             Image = $"https://picsum.photos/200/?random={RandomNumber3}"
         };
         private static Category category4 = new Category
         {
             Id = Guid.NewGuid(),
-            Name = "Books",
+            Name = "Jewelery",
             Image = $"https://picsum.photos/200/?random={RandomNumber4}"
-        };
-        private static Category category5 = new Category
-        {
-            Id = Guid.NewGuid(),
-            Name = "Toys",
-            Image = $"https://picsum.photos/200/?random={RandomNumber5}"
-        };
-        private static Category category6 = new Category
-        {
-            Id = Guid.NewGuid(),
-            Name = "Sports",
-            Image = $"https://picsum.photos/200/?random={RandomNumber6}"
         };
 
         public static List<Category> GetCategories()
         {
             return new List<Category>
             {
-                category1, category2, category3, category4, category5, category6
+                category1, category2, category3, category4
             };
+        }
+        #endregion
+
+        #region Products
+        private static List<Product> GenerateProductsForCategory(Category category, int count)
+        {
+            var products = new List<Product>();
+
+            for (int i = 1; i <= count; i++)
+            {
+                var product = new Product
+                {
+                    Id = Guid.NewGuid(),
+                    Title = $"{category.Name} Product {i}",
+                    Description = $"Description for {category.Name} Product {i}",
+                    Price = GetRandomNumber() * 100,
+                    CategoryId = category.Id,
+                    Inventory = 100
+                };
+                products.Add(product);
+            }
+            return products;
+        }
+
+        public static List<Product> GetProducts()
+        {
+            var products = new List<Product>();
+            products.AddRange(GenerateProductsForCategory(category1, 10));
+            products.AddRange(GenerateProductsForCategory(category2, 10));
+            products.AddRange(GenerateProductsForCategory(category3, 10));
+            products.AddRange(GenerateProductsForCategory(category4, 10));
+            return products;
+        }
+
+        private static List<Product> Products = GetProducts();
+
+        public static List<ProductImage> GetProductImagesForProduct(Guid productId)
+        {
+            var productImages = new List<ProductImage>();
+            for (int i = 0; i < 3; i++)
+            {
+                var productImage = new ProductImage
+                {
+                    Id = Guid.NewGuid(),
+                    Url = $"https://picsum.photos/200/?random={GetRandomNumberForImage()}",
+                    ProductId = productId
+                };
+                productImages.Add(productImage);
+            }
+            return productImages;
         }
         #endregion
 

@@ -60,7 +60,7 @@ namespace Ecommerce.WebAPI.src.Database
                 .WithOne()
                 .HasForeignKey(op => op.OrderId)
                 .OnDelete(DeleteBehavior.Cascade);
-                
+
             // Unique constraint
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Email)
@@ -72,6 +72,9 @@ namespace Ecommerce.WebAPI.src.Database
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
             modelBuilder.Entity<Product>()
                 .Property(p => p.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            modelBuilder.Entity<ProductImage>()
+                .Property(i => i.CreatedDate)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
             modelBuilder.Entity<Category>()
                 .Property(c => c.CreatedDate)
@@ -95,9 +98,9 @@ namespace Ecommerce.WebAPI.src.Database
 
             modelBuilder.Entity<Category>(c => c.Property(c => c.Name).HasColumnType("varchar"));
             modelBuilder.Entity<Category>(c => c.Property(c => c.Image).HasColumnType("varchar"));
-            
+
             modelBuilder.Entity<ProductImage>(i => i.Property(i => i.Url).HasColumnType("varchar"));
-            
+
             // Relationship, column type and constraint of Product
             modelBuilder.Entity<Product>(product =>
             {
@@ -109,7 +112,7 @@ namespace Ecommerce.WebAPI.src.Database
                 product.HasMany(p => p.ProductImages)
                     .WithOne()
                     .OnDelete(DeleteBehavior.Cascade);
-                    
+
                 // Configure column type and constraint of Product
                 product.Property(p => p.Title).IsRequired().HasColumnType("varchar").HasMaxLength(255);
                 product.HasIndex(p => p.Title).IsUnique().HasDatabaseName("title");
@@ -145,6 +148,17 @@ namespace Ecommerce.WebAPI.src.Database
         {
             var categories = SeedingData.GetCategories();
             modelBuilder.Entity<Category>().HasData(categories);
+
+            var products = SeedingData.GetProducts();
+            modelBuilder.Entity<Product>().HasData(products);
+
+            var productImages = new List<ProductImage>();
+            foreach (var product in products)
+            {
+                var imagesForProduct = SeedingData.GetProductImagesForProduct(product.Id);
+                productImages.AddRange(imagesForProduct);
+            }
+            modelBuilder.Entity<ProductImage>().HasData(productImages);
 
             var users = SeedingData.GetUsers();
             modelBuilder.Entity<User>().HasData(users);

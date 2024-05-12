@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using Ecommerce.Service.src.ServiceAbstract;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 
-namespace Ecommerce.WebAPI.src.Service
+namespace Ecommerce.WebAPI.src.ExternalService
 {
     public class PasswordService : IPasswordService
     {

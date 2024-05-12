@@ -7,7 +7,7 @@ using Ecommerce.Core.src.Entity;
 using Ecommerce.Service.src.ServiceAbstract;
 using Microsoft.Extensions.Caching.Memory;
 
-namespace Ecommerce.WebAPI.src.Service
+namespace Ecommerce.WebAPI.src.ExternalService
 {
     public class TokenService : ITokenService
     {

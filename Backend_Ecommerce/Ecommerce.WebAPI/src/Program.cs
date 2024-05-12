@@ -8,7 +8,7 @@ using Ecommerce.WebAPI.src.AuthorizationPolicy;
 using Ecommerce.WebAPI.src.Database;
 using Ecommerce.WebAPI.src.Middleware;
 using Ecommerce.WebAPI.src.Repo;
-using Ecommerce.WebAPI.src.Service;
+using Ecommerce.WebAPI.src.ExternalService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;

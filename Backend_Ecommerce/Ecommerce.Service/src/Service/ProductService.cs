@@ -61,7 +61,6 @@ namespace Ecommerce.Service.src.Service
             }
             try
             {
-
                 var product = await _productRepo.GetProductByIdAsync(productId);
                 var productDto = _mapper.Map<ProductReadDto>(product);
 
@@ -75,10 +74,8 @@ namespace Ecommerce.Service.src.Service
             }
             catch (Exception)
             {
-
                 throw;
             }
-
         }
 
 
@@ -138,7 +135,6 @@ namespace Ecommerce.Service.src.Service
             }
             catch (Exception)
             {
-
                 throw;
             }
         }
@@ -181,7 +177,6 @@ namespace Ecommerce.Service.src.Service
             try
             {
                 var foundProduct = await _productRepo.GetProductByIdAsync(productId);
-
 
                 foundProduct.Title = productUpdateDto.ProductTitle ?? foundProduct.Title;
                 foundProduct.Description = productUpdateDto.ProductDescription ?? foundProduct.Description;
