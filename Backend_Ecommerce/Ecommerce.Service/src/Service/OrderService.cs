@@ -129,6 +129,64 @@ namespace Ecommerce.Service.src.Service
             }
         }
 
+        public async Task<OrderReadUpdateDto> UpdateOrderQuantityAsync(Guid orderId, OrderUpdateDto orderUpdateDto)
+        {
+            var foundOrder = await _orderRepo.GetOrderByIdAsync(orderId);
+            if (orderId == Guid.Empty)
+            {
+                throw AppException.BadRequest("Order id is required");
+            }
+            if (foundOrder is null)
+            {
+                throw AppException.NotFound("Order not found");
+            }
+            foundOrder.UpdatedDate = DateOnly.FromDateTime(DateTime.Now);
+
+            // Convert OrderProduct to a list
+            var orderProductsList = foundOrder.OrderProducts.ToList();
+
+            foreach (var updatedProduct in orderUpdateDto.OrderProducts)
+            {
+                var existingProduct = orderProductsList.FirstOrDefault(op => op.ProductId == updatedProduct.ProductId);
+                if (existingProduct is not null)
+                {
+                    existingProduct.Quantity = updatedProduct.Quantity;
+                }
+                else
+                {
+                    // If the product is not available in the order, search it in the database, if it exists, add it to the order, otherwise throw an exception
+                    var foundProduct = await _productRepo.GetProductByIdAsync(updatedProduct.ProductId);
+                    if (foundProduct is null)
+                    {
+                        throw AppException.NotFound("Product not found");
+                    }
+                    orderProductsList.Add(new OrderProduct
+                    {
+                        ProductId = updatedProduct.ProductId,
+                        Quantity = updatedProduct.Quantity
+                    });
+                }
+            }
+            // Update the OrderProducts property with the modified list
+            foundOrder.OrderProducts = orderProductsList;
+
+            // Save changes
+            var updatedOrder = await _orderRepo.UpdateOrderAsync(foundOrder);
+
+            // Fetch user information
+            var user = await _userRepo.GetUserByIdAsync(updatedOrder.UserId);
+
+            var orderDto = _mapper.Map<OrderReadUpdateDto>(updatedOrder);
+            orderDto.User = _mapper.Map<UserReadDto>(user);
+            return orderDto;
+        }
+
+        public async Task<OrderReadUpdateDto> DeleteProductFromOrderAsync(Guid orderId, Guid productId)
+        {
+            throw new NotImplementedException();
+        }
+
+
         public async Task<OrderReadUpdateDto> UpdateOrderStatusAsync(Guid orderId, OrderUpdateStatusDto orderUpdateStatusDto)
         {
             var foundOrder = await _orderRepo.GetOrderByIdAsync(orderId);
@@ -147,7 +205,7 @@ namespace Ecommerce.Service.src.Service
             foundOrder.UpdatedDate = DateOnly.FromDateTime(DateTime.Now);
 
             // Save changes
-            var updatedOrder = await _orderRepo.UpdateOrderStatusAsync(foundOrder);
+            var updatedOrder = await _orderRepo.UpdateOrderAsync(foundOrder);
 
             // Fetch user information
             var user = await _userRepo.GetUserByIdAsync(updatedOrder.UserId);

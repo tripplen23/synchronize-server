@@ -19,7 +19,7 @@ namespace Ecommerce.Service.src.DTO
     public class OrderUpdateDto
     {
         public Guid OrderId { get; set; }
-        public OrderStatus OrderStatus { get; set; }
+        public IEnumerable<OrderProductUpdateDto> OrderProducts { get; set; }
     }
 
     public class OrderUpdateStatusDto

@@ -66,6 +66,42 @@ namespace Ecommerce.Controller.src.Controller
         }
 
         [Authorize]
+        [HttpPatch("{orderId}")]
+        public async Task<ActionResult<OrderReadUpdateDto>> UpdateOrderQuantityAsync(Guid orderId, [FromBody] OrderUpdateDto orderUpdateDto)
+        {
+            var foundOrder = await _orderService.GetOrderByIdAsync(orderId);
+            var authResult = await _authorizationService.AuthorizeAsync(HttpContext.User, foundOrder, "AdminOrOwnerOrder");
+
+            if (!authResult.Succeeded)
+            {
+                return Forbid();
+            }
+
+            var result = await _orderService.UpdateOrderQuantityAsync(orderId, orderUpdateDto);
+            return Ok(result);
+        }
+
+        [Authorize]
+        [HttpDelete("{orderId}/products/{productId}")]
+        public async Task<ActionResult<OrderReadUpdateDto>> DeleteProductFromOrderAsync(Guid orderId, Guid productId)
+        {
+            var foundOrder = await _orderService.GetOrderByIdAsync(orderId);
+            var authResult = await _authorizationService.AuthorizeAsync(HttpContext.User, foundOrder, "AdminOrOwnerOrder");
+
+            if (!authResult.Succeeded)
+            {
+                return Forbid();
+            }
+
+            var result = await _orderService.DeleteProductFromOrderAsync(orderId, productId);
+
+            return Ok(result);
+        }
+
+
+
+
+        [Authorize]
         [HttpDelete("{orderId}")]
         public async Task<ActionResult<bool>> DeleteAnOrderByIdAsync([FromRoute] Guid orderId)
         {

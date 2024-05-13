@@ -16,6 +16,7 @@ namespace Ecommerce.Service.src.DTO
 
     public class OrderProductUpdateDto
     {
+        public Guid ProductId { get; set; }
         public int Quantity { get; set; }
     }
 }

@@ -9,7 +9,7 @@ namespace Ecommerce.Core.src.RepoAbstract
         Task<IEnumerable<Order>> GetOrdersByUserIdAsync(Guid userId);
         Task<Order> GetOrderByIdAsync(Guid orderId);
         Task<Order> CreateOrderAsync(Order createdOrder);
-        Task<Order> UpdateOrderStatusAsync(Order updatedOrder);
+        Task<Order> UpdateOrderAsync(Order updatedOrder);
         Task<bool> DeleteOrderByIdAsync(Guid orderId);
     }
 }

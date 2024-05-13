@@ -10,6 +10,8 @@ namespace Ecommerce.Service.src.ServiceAbstract
         Task<OrderReadDto> GetOrderByIdAsync(Guid orderId);
         Task<OrderReadDto> CreateOrderAsync(Guid userId, OrderCreateDto orderCreateDto);
         Task<OrderReadUpdateDto> UpdateOrderStatusAsync(Guid orderId, OrderUpdateStatusDto orderUpdateStatusDto);
+        Task<OrderReadUpdateDto> UpdateOrderQuantityAsync(Guid orderId, OrderUpdateDto orderUpdateDto);
+        Task<OrderReadUpdateDto> DeleteProductFromOrderAsync(Guid orderId, Guid productId);
         Task<bool> DeleteOrderByIdAsync(Guid orderId);
     }
 }

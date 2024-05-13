@@ -95,7 +95,7 @@ namespace Ecommerce.WebAPI.src.Repo
             return result;
         }
 
-        public async Task<Order> UpdateOrderStatusAsync(Order updatedOrder)
+        public async Task<Order> UpdateOrderAsync(Order updatedOrder)
         {
             _orders.Update(updatedOrder);
             await _context.SaveChangesAsync();
