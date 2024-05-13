@@ -12,9 +12,9 @@ namespace Ecommerce.WebAPI.src.AuthorizationPolicy
         }
     }
 
-    public class AdminOrOwnerOrderHandler : AuthorizationHandler<AdminOrOwnerAccountRequirement, OrderReadDto>
+    public class AdminOrOwnerOrderHandler : AuthorizationHandler<AdminOrOwnerOrderRequirement, OrderReadDto>
     {
-        protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, AdminOrOwnerAccountRequirement requirement, OrderReadDto order)
+        protected override Task HandleRequirementAsync(AuthorizationHandlerContext context, AdminOrOwnerOrderRequirement requirement, OrderReadDto order)
         {
             var claims = context.User.Claims;
             var userRole = claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;

@@ -12,46 +12,74 @@ namespace Ecommerce.Controller.src.Controller
     public class OrderController : ControllerBase
     {
         private IOrderService _orderService;
-        public OrderController(IOrderService orderService)
+        private IUserService _userService;
+        private IAuthorizationService _authorizationService;
+        public OrderController(IOrderService orderService, IUserService userService, IAuthorizationService authorizationService)
         {
             _orderService = orderService;
+            _userService = userService;
+            _authorizationService = authorizationService;
         }
 
         [Authorize(Roles = "Admin")]
         [HttpGet()]
-        public async Task<IEnumerable<OrderReadDto>> GetAllOrdersAsync([FromQuery] BaseQueryOptions options)
+        public async Task<ActionResult<IEnumerable<OrderReadDto>>> GetAllOrdersAsync([FromQuery] BaseQueryOptions options)
         {
-            return await _orderService.GetAllOrdersAsync(options); // Will be modified later
+            var result = await _orderService.GetAllOrdersAsync(options);
+            return Ok(result);
+        }
+
+        [HttpGet("user/{userId:guid}")]
+        public async Task<ActionResult<OrderReadDto>> GetOrdersByUserIdAsync([FromRoute] Guid UserId)
+        {
+            UserReadDto foundUser = await _userService.GetUserByIdAsync(UserId);
+            if (foundUser is null)
+            {
+                return NotFound();
+            }
+            return Ok(await _orderService.GetOrdersByUserIdAsync(UserId)); // Will be modified later
         }
 
         [Authorize(Roles = "Admin")]
         [HttpGet("{orderId}")]
-        public async Task<OrderReadDto> GetOrderByIdAsync([FromRoute] Guid orderId)
+        public async Task<ActionResult<OrderReadDto>> GetOrderByIdAsync([FromRoute] Guid orderId)
         {
-            return await _orderService.GetOrderByIdAsync(orderId); // Will be modified later
+            var foundOrder = await _orderService.GetOrderByIdAsync(orderId);
+            return Ok(foundOrder);
         }
 
-        [Authorize()]
         [HttpPost()]
-        public async Task<OrderReadDto> CreateOrderAsync([FromBody] OrderCreateDto orderCreateDto)
+        public async Task<ActionResult<OrderReadDto>> CreateOrderAsync([FromBody] OrderCreateDto orderCreateDto)
         {
             var userId = GetUserIdClaim();
-            return await _orderService.CreateOrderAsync(userId, orderCreateDto); // Will be modified later
+            var result = await _orderService.CreateOrderAsync(userId, orderCreateDto);
+            return Ok(result);
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpPatch("{orderId}")]
-        public async Task<OrderReadUpdateDto> UpdateOrderByIdAsync([FromRoute] Guid orderId, [FromBody] OrderUpdateDto orderUpdateDto)
+        [HttpPatch("status/{orderId}")]
+        public async Task<ActionResult<OrderReadUpdateDto>> UpdateOrderStatusAsync([FromRoute] Guid orderId, [FromBody] OrderUpdateStatusDto orderUpdateStatusDto)
         {
-            orderUpdateDto.OrderId = orderId; // If order is found...
-            return await _orderService.UpdateOrderByIdAsync(orderId, orderUpdateDto); // Will be modified later
+            orderUpdateStatusDto.OrderId = orderId;
+            var result = await _orderService.UpdateOrderStatusAsync(orderId, orderUpdateStatusDto);
+            return Ok(result);
         }
 
-        [Authorize(Roles = "Admin")]
+        [Authorize]
         [HttpDelete("{orderId}")]
-        public async Task<bool> DeleteAnOrderByIdAsync([FromRoute] Guid orderId)
+        public async Task<ActionResult<bool>> DeleteAnOrderByIdAsync([FromRoute] Guid orderId)
         {
-            return await _orderService.DeleteOrderByIdAsync(orderId); // Will be modified later
+            OrderReadDto? foundOrder = await _orderService.GetOrderByIdAsync(orderId);
+            var authResult = await _authorizationService.AuthorizeAsync(HttpContext.User, foundOrder, "AdminOrOwnerOrder");
+
+            if (!authResult.Succeeded)
+            {
+                return Forbid();
+            }
+
+            var result = await _orderService.DeleteOrderByIdAsync(orderId);
+
+            return Ok(result);
         }
 
         private Guid GetUserIdClaim()

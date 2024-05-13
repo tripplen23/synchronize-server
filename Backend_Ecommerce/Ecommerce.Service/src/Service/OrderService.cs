@@ -91,6 +91,19 @@ namespace Ecommerce.Service.src.Service
             return orderDtos;
         }
 
+        public async Task<IEnumerable<OrderReadDto>> GetOrdersByUserIdAsync(Guid userId)
+        {
+            var foundUser = _userRepo.GetUserByIdAsync(userId);
+            if (foundUser is null)
+            {
+                throw AppException.NotFound("User not found");
+            }
+            var orders = await _orderRepo.GetOrdersByUserIdAsync(userId);
+            var orderDtos = _mapper.Map<IEnumerable<Order>, IEnumerable<OrderReadDto>>(orders);
+
+            return orderDtos;
+        }
+
         public async Task<OrderReadDto> GetOrderByIdAsync(Guid orderId)
         {
             if (orderId == Guid.Empty)
@@ -116,7 +129,7 @@ namespace Ecommerce.Service.src.Service
             }
         }
 
-        public async Task<OrderReadUpdateDto> UpdateOrderByIdAsync(Guid orderId, OrderUpdateDto orderUpdateDto)
+        public async Task<OrderReadUpdateDto> UpdateOrderStatusAsync(Guid orderId, OrderUpdateStatusDto orderUpdateStatusDto)
         {
             var foundOrder = await _orderRepo.GetOrderByIdAsync(orderId);
 
@@ -130,18 +143,18 @@ namespace Ecommerce.Service.src.Service
             }
 
             // Update order status and date
-            foundOrder.Status = orderUpdateDto.OrderStatus;
+            foundOrder.Status = orderUpdateStatusDto.OrderStatus;
             foundOrder.UpdatedDate = DateOnly.FromDateTime(DateTime.Now);
 
             // Save changes
-            var updatedOrder = await _orderRepo.UpdateOrderByIdAsync(foundOrder);
+            var updatedOrder = await _orderRepo.UpdateOrderStatusAsync(foundOrder);
 
             // Fetch user information
             var user = await _userRepo.GetUserByIdAsync(updatedOrder.UserId);
 
             var orderDto = _mapper.Map<OrderReadUpdateDto>(updatedOrder);
             orderDto.User = _mapper.Map<UserReadDto>(user);
-            orderDto.OrderStatus = orderUpdateDto.OrderStatus;
+            orderDto.OrderStatus = orderUpdateStatusDto.OrderStatus;
 
             return orderDto;
         }
@@ -183,7 +196,6 @@ namespace Ecommerce.Service.src.Service
                 orderDto.OrderProducts = orderProductDtos;
             }
         }
-
         #endregion
     }
 }

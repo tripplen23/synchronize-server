@@ -64,7 +64,8 @@ namespace Ecommerce.WebAPI.src.Repo
             // Pagination
             if (options is not null)
             {
-                query = query.OrderBy(o => o.CreatedDate)
+                query = query.Include(o => o.OrderProducts)
+                             .OrderBy(o => o.CreatedDate)
                              .Skip(options.Offset)
                              .Take(options.Limit);
             }
@@ -75,11 +76,26 @@ namespace Ecommerce.WebAPI.src.Repo
 
         public async Task<Order> GetOrderByIdAsync(Guid orderId)
         {
-            var foundOrder = await _orders.FindAsync(orderId);
-            return foundOrder;
+            var query = _orders.AsQueryable();
+            query = query.Include(o => o.OrderProducts)
+                         .ThenInclude(op => op.Product)
+                         .Where(o => o.Id == orderId);
+
+            var order = await query.FirstOrDefaultAsync();
+            return order;
         }
 
-        public async Task<Order> UpdateOrderByIdAsync(Order updatedOrder)
+        public async Task<IEnumerable<Order>> GetOrdersByUserIdAsync(Guid userId)
+        {
+            var query = _orders.AsQueryable();
+            query = query.Include(o => o.OrderProducts)
+                         .ThenInclude(op => op.Product)
+                         .Where(o => o.UserId == userId);
+            var result = await query.ToListAsync();
+            return result;
+        }
+
+        public async Task<Order> UpdateOrderStatusAsync(Order updatedOrder)
         {
             _orders.Update(updatedOrder);
             await _context.SaveChangesAsync();

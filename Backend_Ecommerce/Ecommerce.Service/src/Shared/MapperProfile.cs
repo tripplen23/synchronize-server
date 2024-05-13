@@ -113,7 +113,12 @@ namespace Ecommerce.Service.src.Shared
                 .ForMember(dest => dest.OrderProducts, opt => opt.MapFrom(src => src.OrderProducts));
 
             CreateMap<OrderUpdateDto, Order>();
-            CreateMap<Order, OrderReadUpdateDto>();
+            CreateMap<OrderUpdateStatusDto, Order>();
+            CreateMap<Order, OrderReadUpdateDto>()
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
+                .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User))
+                .ForMember(dest => dest.OrderStatus, opt => opt.MapFrom(src => src.Status))
+                .ForMember(dest => dest.OrderProducts, opt => opt.MapFrom(src => src.OrderProducts));
             #endregion
 
             #region Order Product Mapper:

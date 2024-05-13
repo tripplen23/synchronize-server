@@ -5,7 +5,7 @@ namespace Ecommerce.Service.src.DTO
 {
     public class OrderReadDto : BaseEntity
     {
-        public UserReadDto User { get; set; } // User information
+        public UserReadDto User { get; set; }
         public IEnumerable<OrderProductReadDto> OrderProducts { get; set; }
         public OrderStatus OrderStatus { get; set; } = OrderStatus.Pending;
     }
@@ -22,11 +22,17 @@ namespace Ecommerce.Service.src.DTO
         public OrderStatus OrderStatus { get; set; }
     }
 
+    public class OrderUpdateStatusDto
+    {
+        public Guid OrderId { get; set; }
+        public OrderStatus OrderStatus { get; set; }
+    }
+
     public class OrderReadUpdateDto : BaseEntity
     {
-        public Guid UserId { get; set; } // May be dropped due to the Endpoint design
-        public UserReadDto User { get; set; } // User information
+        public Guid UserId { get; set; }
+        public UserReadDto User { get; set; }
         public OrderStatus OrderStatus { get; set; }
-        public IEnumerable<OrderProductReadDto> OrderProducts { get; set; } // Order products list
+        public IEnumerable<OrderProductReadDto> OrderProducts { get; set; }
     }
 }

@@ -3,8 +3,6 @@ using Ecommerce.Core.src.Common;
 using Ecommerce.WebAPI.src.Database;
 using Ecommerce.Core.src.RepoAbstract;
 using Microsoft.EntityFrameworkCore;
-using Ecommerce.Service.src.Service;
-
 namespace Ecommerce.WebAPI.src.Repo
 {
     public class ProductRepo : IProductRepo
