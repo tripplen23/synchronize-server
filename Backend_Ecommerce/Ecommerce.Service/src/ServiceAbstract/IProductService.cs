@@ -7,6 +7,7 @@ namespace Ecommerce.Service.src.ServiceAbstract
     {
         Task<IEnumerable<ProductReadDto>> GetAllProductsAsync(ProductQueryOptions? options);
         Task<IEnumerable<ProductReadDto>> GetMostPurchasedProductsAsync(int topNumber);
+        Task<IEnumerable<ProductReadDto>> GetProductsByCategoryAsync(Guid categoryId);
         Task<ProductReadDto> GetProductByIdAsync(Guid productId);
         Task<ProductReadDto> CreateProductAsync(ProductCreateDto productCreateDto);
         Task<ProductReadDto> UpdateProductByIdAsync(Guid id, ProductUpdateDto productUpdateDto);

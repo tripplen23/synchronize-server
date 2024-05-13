@@ -108,6 +108,14 @@ namespace Ecommerce.WebAPI.src.Repo
             return products;
         }
 
+        public async Task<IEnumerable<Product>> GetProductsByCategoryAsync(Guid categoryId)
+        {
+            var products = await _products
+            .Include(p => p.ProductImages)
+            .Where(p => p.CategoryId == categoryId).ToListAsync();
+            return products;
+        }
+
         public async Task<IEnumerable<Product>> GetMostPurchasedProductsAsync(int topNumber)
         {
             var parameters = new List<object> { topNumber };
@@ -118,7 +126,6 @@ namespace Ecommerce.WebAPI.src.Repo
 
             return mostPurchasedProducts;
         }
-
 
         public async Task<Product> GetProductByIdAsync(Guid productId)
         {

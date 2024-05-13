@@ -24,6 +24,13 @@ namespace Ecommerce.Controller.src.Controller
             return await _productService.GetAllProductsAsync(options);
         }
 
+        [HttpGet("category/{categoryId}")]
+        public async Task<ActionResult<IEnumerable<ProductReadDto>>> GetProductsByCategoryAsync([FromRoute] Guid categoryId)
+        {
+            var result = await _productService.GetProductsByCategoryAsync(categoryId);
+            return Ok(result);
+        }
+
         [HttpGet("{productId}")]
         public async Task<ProductReadDto> GetProductByIdAsync([FromRoute] Guid productId)
         {
@@ -40,7 +47,7 @@ namespace Ecommerce.Controller.src.Controller
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpPut("{productId}")]
+        [HttpPatch("{productId}")]
         public async Task<ProductReadDto> UpdateProductByIdAsync([FromRoute] Guid productId, [FromBody] ProductUpdateDto productUpdateDto)
         {
 
@@ -52,9 +59,7 @@ namespace Ecommerce.Controller.src.Controller
         [HttpDelete("{productId}")]
         public async Task<bool> DeleteProductByIdAsync([FromRoute] Guid productId)
         {
-
             return await _productService.DeleteProductByIdAsync(productId);
-
         }
 
     }

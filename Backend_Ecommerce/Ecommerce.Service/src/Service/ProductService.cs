@@ -52,6 +52,18 @@ namespace Ecommerce.Service.src.Service
             }
         }
 
+        public async Task<IEnumerable<ProductReadDto>> GetProductsByCategoryAsync(Guid categoryId)
+        {
+            var foundCategory = await _categoryRepo.GetCategoryByIdAsync(categoryId);
+            if (foundCategory is null)
+            {
+                throw AppException.NotFound("Category not found");
+            }
+            var products = await _productRepo.GetProductsByCategoryAsync(categoryId);
+            var productDtos = _mapper.Map<IEnumerable<Product>, IEnumerable<ProductReadDto>>(products);
+
+            return productDtos;
+        }
 
         public async Task<ProductReadDto> GetProductByIdAsync(Guid productId)
         {
@@ -256,6 +268,5 @@ namespace Ecommerce.Service.src.Service
             // Check if the URL matches the pattern
             return regex.IsMatch(imageUrl);
         }
-
     }
 }

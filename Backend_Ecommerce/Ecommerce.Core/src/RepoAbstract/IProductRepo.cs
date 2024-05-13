@@ -7,6 +7,7 @@ namespace Ecommerce.Core.src.RepoAbstract
     {
         Task<IEnumerable<Product>> GetAllProductsAsync(ProductQueryOptions? options);
         Task<IEnumerable<Product>> GetMostPurchasedProductsAsync(int topNumber);
+        Task<IEnumerable<Product>> GetProductsByCategoryAsync(Guid categoryId);
         Task<Product> GetProductByIdAsync(Guid productId);
         Task<Product> CreateProductAsync(Product newProduct);
         Task<Product> UpdateProductByIdAsync(Product updatedProduct);
