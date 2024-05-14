@@ -9,8 +9,8 @@ namespace Ecommerce.Core.src.Entity
         public decimal Price { get; set; }
 
         [ForeignKey("CategoryId")]
-        public Guid CategoryId { get; set; } //  foreign key navigate to category
-        public int Inventory { get; set; } = 0;
+        public Guid CategoryId { get; set; }
+        public int Inventory { get; set; }
         public IEnumerable<ProductImage> ProductImages { get; set; } = new List<ProductImage>();
     }
 }

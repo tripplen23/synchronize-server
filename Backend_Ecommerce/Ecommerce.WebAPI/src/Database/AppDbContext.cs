@@ -16,6 +16,8 @@ namespace Ecommerce.WebAPI.src.Database
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderProduct> OrderProducts { get; set; }
         public DbSet<Review> Reviews { get; set; }
+        public DbSet<Cart> Carts { get; set; }
+        public DbSet<CartItem> CartItems { get; set; }
         #endregion
 
         #region Constructors
@@ -61,6 +63,20 @@ namespace Ecommerce.WebAPI.src.Database
                 .HasForeignKey(op => op.OrderId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<CartItem>()
+                .HasKey(op => new { op.CartId, op.ProductId });
+
+            modelBuilder.Entity<Cart>()
+                .HasMany(c => c.CartItems)
+                .WithOne()
+                .HasForeignKey(ci => ci.CartId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<User>()
+                .HasOne(u => u.Cart)
+                .WithOne(c => c.User)
+                .HasForeignKey<Cart>(c => c.UserId);
+
             // Unique constraint
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Email)
@@ -84,6 +100,9 @@ namespace Ecommerce.WebAPI.src.Database
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
             modelBuilder.Entity<Order>()
                 .Property(o => o.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            modelBuilder.Entity<Cart>()
+                .Property(c => c.CreatedDate)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
             modelBuilder.Entity<Review>()
                 .Property(r => r.CreatedDate)
@@ -119,8 +138,9 @@ namespace Ecommerce.WebAPI.src.Database
                 product.Property(p => p.Description).IsRequired().HasColumnType("varchar");
                 product.HasIndex(p => p.Price);
                 product.Property(p => p.Price).IsRequired();
-                product.ToTable(t => t.HasCheckConstraint("product_price_check", "price > 0"));
                 product.Property(p => p.Inventory).HasDefaultValue(0);
+                product.ToTable(t => t.HasCheckConstraint("product_price_check", "price > 0"));
+                product.ToTable(t => t.HasCheckConstraint("product_inventory_check", "inventory >= 0"));
             });
 
             // Fetch seed data
@@ -143,7 +163,6 @@ namespace Ecommerce.WebAPI.src.Database
                 }
             }
         }
-
         private void SeedData(ModelBuilder modelBuilder)
         {
             var categories = SeedingData.GetCategories();
@@ -164,6 +183,9 @@ namespace Ecommerce.WebAPI.src.Database
             modelBuilder.Entity<User>().HasData(users);
 
         }
+        #endregion
+
+        #region Queries function
         #endregion
     }
 }

@@ -16,10 +16,6 @@ namespace Ecommerce.Core.src.Entity
         public byte[] Salt { get; set; }
         public string? Avatar { get; set; }
         public UserRole UserRole { get; set; }
-
-        override public string ToString()
-        {
-            return $"User Name: {Name}, User Email: {Email}, User Avatar: {Avatar}, User Role: {UserRole}";
-        }
+        public Cart Cart { get; set; }
     }
 }

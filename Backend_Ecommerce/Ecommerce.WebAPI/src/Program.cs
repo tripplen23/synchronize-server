@@ -38,6 +38,8 @@ builder.Services.AddDbContext<AppDbContext>
         .UseNpgsql(dataSource)
         .UseSnakeCaseNamingConvention()
         .AddInterceptors(new TimeStampInterceptor())
+        .EnableSensitiveDataLogging() // For Development
+        .EnableDetailedErrors() // For Development
 );
 
 // service registration -> automatically create all instances of dependencies
@@ -54,6 +56,9 @@ builder.Services.AddScoped<ICategoryRepo, CategoryRepo>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IOrderRepo, OrderRepo>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<ICartRepo, CartRepo>();
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<ICartItemService, CartItemService>();
 builder.Services.AddScoped<IReviewRepo, ReviewRepo>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 

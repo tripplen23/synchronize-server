@@ -10,11 +10,11 @@ namespace Ecommerce.Core.src.Entity
         public string? Content { get; set; }
 
         [ForeignKey("UserId")]
-        public Guid UserId { get; set; } // Foreign key navigate to user
+        public Guid UserId { get; set; }
         public User User { get; set; }
 
         [ForeignKey("ProductId")]
-        public Guid ProductId { get; set; } // Foreign key navigate to product
+        public Guid ProductId { get; set; }
         public Product Product { get; set; }
     }
 }

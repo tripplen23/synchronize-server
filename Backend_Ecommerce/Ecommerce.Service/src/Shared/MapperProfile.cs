@@ -8,13 +8,10 @@ namespace Ecommerce.Service.src.Shared
     {
         public MapperProfile()
         {
-            // #region User Mapper:
+            #region User Mapper:
             CreateMap<User, UserReadDto>();
             CreateMap<UserCreateDto, User>();
             CreateMap<UserUpdateDto, User>();
-            // #endregion
-
-            #region User Mapper:
             CreateMap<UserCreateDto, User>()
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.UserName))
                 .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.UserEmail))
@@ -121,7 +118,7 @@ namespace Ecommerce.Service.src.Shared
                 .ForMember(dest => dest.OrderProducts, opt => opt.MapFrom(src => src.OrderProducts));
             #endregion
 
-            #region Order Product Mapper:
+            #region Order Products Mapper:
             CreateMap<OrderProduct, OrderProductReadDto>()
                 .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.ProductId))
                 .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity))
@@ -130,6 +127,39 @@ namespace Ecommerce.Service.src.Shared
 
             CreateMap<OrderProductCreateDto, OrderProduct>();
             CreateMap<OrderProductUpdateDto, OrderProduct>();
+            #endregion
+
+            #region Cart Mapper:
+            CreateMap<Cart, CartReadDto>()
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
+                .ForMember(dest => dest.CartItems, opt => opt.MapFrom(src => src.CartItems));
+
+            CreateMap<CartCreateDto, Cart>()
+                .ForMember(dest => dest.CartItems, opt => opt.MapFrom(src => src.CartItems));
+
+            CreateMap<CartUpdateDto, Cart>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.CartId))
+                .ForMember(dest => dest.CartItems, opt => opt.MapFrom(src => src.CartItems));
+            #endregion
+
+            #region Cart Items Mapper:
+            CreateMap<CartItemReadDto, CartItem>()
+                .ForMember(dest => dest.CartId, opt => opt.MapFrom(src => src.CartId))
+                .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.ProductId))
+                .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity));
+
+            CreateMap<CartItem, CartItemReadDto>()
+                .ForMember(dest => dest.CartId, opt => opt.MapFrom(src => src.CartId))
+                .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.ProductId))
+                .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity));
+
+            CreateMap<CartItemCreateDto, CartItem>()
+                .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.ProductId))
+                .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity));
+
+            CreateMap<CartItemUpdateDto, CartItem>()
+                .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.ProductId))
+                .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity));
             #endregion
 
             #region Review mapper
