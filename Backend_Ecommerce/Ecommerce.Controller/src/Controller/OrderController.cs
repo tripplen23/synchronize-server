@@ -11,16 +11,22 @@ namespace Ecommerce.Controller.src.Controller
     [Route("api/v1/orders")]
     public class OrderController : ControllerBase
     {
+        #region Properties
         private IOrderService _orderService;
         private IUserService _userService;
         private IAuthorizationService _authorizationService;
+        #endregion
+
+        #region Constructor
         public OrderController(IOrderService orderService, IUserService userService, IAuthorizationService authorizationService)
         {
             _orderService = orderService;
             _userService = userService;
             _authorizationService = authorizationService;
         }
+        #endregion
 
+        #region GET http://localhost:5227/api/v1/orders
         [Authorize(Roles = "Admin")]
         [HttpGet()]
         public async Task<ActionResult<IEnumerable<OrderReadDto>>> GetAllOrdersAsync([FromQuery] BaseQueryOptions options)
@@ -28,7 +34,9 @@ namespace Ecommerce.Controller.src.Controller
             var result = await _orderService.GetAllOrdersAsync(options);
             return Ok(result);
         }
+        #endregion
 
+        #region GET http://localhost:5227/api/v1/orders/user/:userId
         [HttpGet("user/{userId:guid}")]
         public async Task<ActionResult<OrderReadDto>> GetOrdersByUserIdAsync([FromRoute] Guid userId)
         {
@@ -39,7 +47,9 @@ namespace Ecommerce.Controller.src.Controller
             }
             return Ok(await _orderService.GetOrdersByUserIdAsync(userId)); // Will be modified later
         }
+        #endregion
 
+        #region GET http://localhost:5227/api/v1/orders/:orderId
         [Authorize(Roles = "Admin")]
         [HttpGet("{orderId}")]
         public async Task<ActionResult<OrderReadDto>> GetOrderByIdAsync([FromRoute] Guid orderId)
@@ -47,7 +57,9 @@ namespace Ecommerce.Controller.src.Controller
             var foundOrder = await _orderService.GetOrderByIdAsync(orderId);
             return Ok(foundOrder);
         }
+        #endregion
 
+        #region POST http://localhost:5227/api/v1/orders
         [Authorize]
         [HttpPost()]
         public async Task<ActionResult<OrderReadDto>> CreateOrderAsync([FromBody] OrderCreateDto orderCreateDto)
@@ -56,7 +68,9 @@ namespace Ecommerce.Controller.src.Controller
             var result = await _orderService.CreateOrderAsync(userId, orderCreateDto);
             return Ok(result);
         }
+        #endregion
 
+        #region PATCH http://localhost:5227/api/v1/orders/:orderId
         [Authorize(Roles = "Admin")]
         [HttpPatch("{orderId}")]
         public async Task<ActionResult<OrderReadUpdateDto>> UpdateOrderStatusAsync([FromRoute] Guid orderId, [FromBody] OrderUpdateStatusDto orderUpdateStatusDto)
@@ -65,7 +79,9 @@ namespace Ecommerce.Controller.src.Controller
             var result = await _orderService.UpdateOrderStatusAsync(orderId, orderUpdateStatusDto);
             return Ok(result);
         }
+        #endregion
 
+        #region DELETE http://localhost:5227/api/v1/orders/:orderId
         [Authorize]
         [HttpDelete("{orderId}")]
         public async Task<ActionResult<bool>> DeleteAnOrderByIdAsync([FromRoute] Guid orderId)
@@ -82,7 +98,9 @@ namespace Ecommerce.Controller.src.Controller
 
             return Ok(result);
         }
+        #endregion
 
+        #region Helper methods
         private Guid GetUserIdClaim()
         {
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -96,8 +114,6 @@ namespace Ecommerce.Controller.src.Controller
             }
             return userId;
         }
-
-        // Update order product information (Quantity, productId, ...) -> Will implement later.
-        // UpdateOrderStatusAsync(OrderId, OrderUpdateDto orderUpdate);
+        #endregion
     }
 }

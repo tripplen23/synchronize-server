@@ -37,15 +37,10 @@ namespace Ecommerce.Service.src.Service
             }
 
             // Create a new Review object and set its properties
-            var review = new Review
-            {
-                Rating = reviewCreateDto.ReviewRating,
-                Content = reviewCreateDto.ReviewContent,
-                UserId = userId,
-                User = foundUser,
-                ProductId = reviewCreateDto.ProductId,
-                Product = foundProduct
-            };
+            var review = _mapper.Map<Review>(reviewCreateDto);
+            review.UserId = userId;
+            review.User = foundUser;
+            review.Product = foundProduct;
 
             var createdReview = await _reviewRepo.CreateReviewAsync(review);
 

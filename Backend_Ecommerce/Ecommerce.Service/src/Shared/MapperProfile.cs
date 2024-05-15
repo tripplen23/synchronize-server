@@ -166,14 +166,12 @@ namespace Ecommerce.Service.src.Shared
             CreateMap<Review, ReviewReadDto>()
                 .ForMember(dest => dest.ReviewRating, opt => opt.MapFrom(src => src.Rating))
                 .ForMember(dest => dest.ReviewContent, opt => opt.MapFrom(src => src.Content))
-                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
                 .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.ProductId));
             CreateMap<ReviewReadDto, Review>();
             CreateMap<ReviewCreateDto, Review>()
                 .ForMember(dest => dest.Rating, opt => opt.MapFrom(src => src.ReviewRating))
                 .ForMember(dest => dest.Content, opt => opt.MapFrom(src => src.ReviewContent))
-                .ForMember(dest => dest.UserId, opt => opt.Ignore())
-                .ForMember(dest => dest.ProductId, opt => opt.Ignore());
+                .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.ProductId));
             CreateMap<Review, ReviewCreateDto>();
             #endregion
         }

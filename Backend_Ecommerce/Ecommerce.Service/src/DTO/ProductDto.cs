@@ -9,7 +9,6 @@ namespace Ecommerce.Service.src.DTO
         public string ProductTitle { get; set; }
         public string ProductDescription { get; set; }
         public decimal ProductPrice { get; set; }
-        [JsonIgnore]
         public int ProductInventory { get; set; }
         public IEnumerable<ProductImageReadDto>? ProductImages { get; set; }
         public Guid CategoryId { get; set; }

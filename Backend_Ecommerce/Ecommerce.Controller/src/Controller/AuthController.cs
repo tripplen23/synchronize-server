@@ -11,23 +11,30 @@ namespace Ecommerce.Controller.src.Controller
     [Route("api/v1/auth")]
     public class AuthController : ControllerBase
     {
+        #region Properties
         private readonly IAuthService _authService;
         private readonly IAuthorizationService _authorizationService;
         private readonly IUserService _userService;
+        #endregion
 
+        #region Constructor
         public AuthController(IAuthService authService, IAuthorizationService authorizationService, IUserService userService)
         {
             _authService = authService;
             _authorizationService = authorizationService;
             _userService = userService;
         }
+        #endregion
 
+        #region POST http://localhost:5227/api/v1/auth/login
         [HttpPost("login")]
         public async Task<ActionResult<string>> LoginAsync([FromBody] UserCredential userCredential)
         {
             return await _authService.LoginAsync(userCredential);
         }
+        #endregion
 
+        #region GET http://localhost:5227/api/v1/auth/profile
         // logged in user or Admin
         [Authorize]
         [HttpGet("profile")]
@@ -44,15 +51,15 @@ namespace Ecommerce.Controller.src.Controller
 
             return await _authService.GetCurrentProfileAsync(user.Id);
         }
+        #endregion
 
-
+        #region POST http://localhost:5227/api/v1/auth/logout
         [Authorize]
         [HttpPost("logout")]
         public async Task<IActionResult> LogoutAsync()
         {
             // Retrieve token from the Authorization header
             var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
-            // Console.WriteLine(token);
 
             // Check if the token exists
             if (string.IsNullOrEmpty(token))
@@ -68,10 +75,9 @@ namespace Ecommerce.Controller.src.Controller
             }
             else
             {
-                return Ok("User already logout");
+                return BadRequest("User is already logout");
             }
-
         }
-
+        #endregion
     }
 }

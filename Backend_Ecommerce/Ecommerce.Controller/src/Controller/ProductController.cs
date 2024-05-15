@@ -10,57 +10,82 @@ namespace Ecommerce.Controller.src.Controller
     [Route("api/v1/products")]
     public class ProductController : ControllerBase
     {
+        #region Properties
         private IProductService _productService;
+        #endregion
 
+        #region Constructor
         public ProductController(IProductService productService)
         {
             _productService = productService;
         }
+        #endregion
 
+        #region GET http://localhost:5227/api/v1/products
         [HttpGet("")]
-        public async Task<IEnumerable<ProductReadDto>> GetAllProductsAsync([FromQuery] ProductQueryOptions? options)
+        public async Task<ActionResult<IEnumerable<ProductReadDto>>> GetAllProductsAsync([FromQuery] ProductQueryOptions? options)
         {
-
-            return await _productService.GetAllProductsAsync(options);
+            var result = await _productService.GetAllProductsAsync(options);
+            return Ok(result);
         }
+        #endregion
 
-        [HttpGet("category/{categoryId}")]
+        #region GET http://localhost:5227/api/v1/products/category/{categoryId}
+        [HttpGet("category/{categoryId:guid}")]
         public async Task<ActionResult<IEnumerable<ProductReadDto>>> GetProductsByCategoryAsync([FromRoute] Guid categoryId)
         {
             var result = await _productService.GetProductsByCategoryAsync(categoryId);
             return Ok(result);
         }
+        #endregion
 
+        #region GET http://localhost:5227/api/v1/products/{productId}
         [HttpGet("{productId}")]
-        public async Task<ProductReadDto> GetProductByIdAsync([FromRoute] Guid productId)
+        public async Task<ActionResult<ProductReadDto>> GetProductByIdAsync([FromRoute] Guid productId)
         {
-            return await _productService.GetProductByIdAsync(productId);
+            var foundProduct = await _productService.GetProductByIdAsync(productId);
+            if (foundProduct is null)
+            {
+                return NotFound();
+            }
+            return Ok(foundProduct);
         }
+        #endregion
 
+        #region POST http://localhost:5227/api/v1/products
         [Authorize(Roles = "Admin")]
         [HttpPost("")]
-        public async Task<ProductReadDto> CreateProductAsync([FromBody] ProductCreateDto productCreateDto)
+        public async Task<ActionResult<ProductReadDto>> CreateProductAsync([FromBody] ProductCreateDto productCreateDto)
         {
-
-            return await _productService.CreateProductAsync(productCreateDto);
-
+            var result = await _productService.CreateProductAsync(productCreateDto);
+            return Ok(result);
         }
+        #endregion
 
+        #region PATCH http://localhost:5227/api/v1/products/{productId}
         [Authorize(Roles = "Admin")]
         [HttpPatch("{productId}")]
-        public async Task<ProductReadDto> UpdateProductByIdAsync([FromRoute] Guid productId, [FromBody] ProductUpdateDto productUpdateDto)
+        public async Task<ActionResult<ProductReadDto>> UpdateProductByIdAsync([FromRoute] Guid productId, [FromBody] ProductUpdateDto productUpdateDto)
         {
+            var foundProduct = await _productService.GetProductByIdAsync(productId);
+            if (foundProduct is null)
+            {
+                return NotFound();
+            }
 
-            return await _productService.UpdateProductByIdAsync(productId, productUpdateDto);
-
+            var result = await _productService.UpdateProductByIdAsync(productId, productUpdateDto);
+            return Ok(result);
         }
+        #endregion
 
+        #region DELETE http://localhost:5227/api/v1/products/{productId}
         [Authorize(Roles = "Admin")]
         [HttpDelete("{productId}")]
-        public async Task<bool> DeleteProductByIdAsync([FromRoute] Guid productId)
+        public async Task<ActionResult<bool>> DeleteProductByIdAsync([FromRoute] Guid productId)
         {
-            return await _productService.DeleteProductByIdAsync(productId);
+            var result = await _productService.DeleteProductByIdAsync(productId);
+            return Ok(result);
         }
-
+        #endregion
     }
 }

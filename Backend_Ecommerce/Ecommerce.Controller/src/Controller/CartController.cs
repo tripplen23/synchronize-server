@@ -11,11 +11,14 @@ namespace Ecommerce.Controller.src.Controller
     [Route("api/v1/carts")]
     public class CartController : ControllerBase
     {
+        #region Properties
         private ICartService _cartService;
         private ICartItemService _cartItemService;
         private IUserService _userService;
         private IAuthorizationService _authorizationService;
+        #endregion
 
+        #region Constructor
         public CartController(ICartService cartService, IUserService userService, ICartItemService cartItemService, IAuthorizationService authorizationService)
         {
             _cartService = cartService;
@@ -23,7 +26,9 @@ namespace Ecommerce.Controller.src.Controller
             _cartItemService = cartItemService;
             _authorizationService = authorizationService;
         }
+        #endregion
 
+        #region POST http://localhost:5227/api/v1/carts
         [Authorize]
         [HttpPost()]
         public async Task<ActionResult<CartReadDto>> CreateCartAsync([FromBody] CartCreateDto cartCreateDto)
@@ -33,7 +38,9 @@ namespace Ecommerce.Controller.src.Controller
 
             return Ok(result);
         }
+        #endregion
 
+        #region GET http://localhost:5227/api/v1/carts
         [Authorize(Roles = "Admin")]
         [HttpGet()]
         public async Task<ActionResult<IEnumerable<CartReadDto>>> GetAllCartsAsync([FromQuery] BaseQueryOptions options)
@@ -42,7 +49,9 @@ namespace Ecommerce.Controller.src.Controller
 
             return Ok(result);
         }
+        #endregion
 
+        #region GET http://localhost:5227/api/v1/carts/:cartId
         // Admin and owner
         [Authorize]
         [HttpGet("{cartId:guid}")]
@@ -65,7 +74,9 @@ namespace Ecommerce.Controller.src.Controller
 
             return Ok(result);
         }
+        #endregion
 
+        #region DELETE http://localhost:5227/api/v1/carts/:cartId
         // Admin or owner
         [Authorize]
         [HttpDelete("{cartId:guid}")]
@@ -87,7 +98,9 @@ namespace Ecommerce.Controller.src.Controller
             await _cartService.DeleteCartByIdAsync(cartId);
             return Ok($"Cart {cartId} deleted successfully");
         }
+        #endregion
 
+        #region PATCH http://localhost:5227/api/v1/carts/:cartId
         // Admin or owner
         [Authorize]
         [HttpPatch("{cartId}")]
@@ -109,6 +122,7 @@ namespace Ecommerce.Controller.src.Controller
             var result = await _cartItemService.UpdateCartItemQuantityAsync(cartId, cartUpdateDto);
             return Ok(result);
         }
+        #endregion
 
         #region Helper Methods
         private Guid GetUserIdClaim()

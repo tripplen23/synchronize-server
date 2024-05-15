@@ -99,7 +99,7 @@ namespace Ecommerce.WebAPI.src.Database
                 var productImage = new ProductImage
                 {
                     Id = Guid.NewGuid(),
-                    Url = $"https://picsum.photos/200/?random={GetRandomNumberForImage()}",
+                    ImageData = $"https://picsum.photos/200/?random={GetRandomNumberForImage()}",
                     ProductId = productId
                 };
                 productImages.Add(productImage);

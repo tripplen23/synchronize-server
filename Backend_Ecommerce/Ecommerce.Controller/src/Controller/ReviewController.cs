@@ -11,16 +11,20 @@ namespace Ecommerce.Controller.src.Controller
     [Route("api/v1/reviews")]
     public class ReviewController : ControllerBase
     {
+        #region Properties
         private readonly IReviewService _service;
         private readonly IAuthorizationService _authorizationService;
+        #endregion
 
+        #region Constructor
         public ReviewController(IReviewService service, IAuthorizationService authorizationService)
         {
             _service = service;
             _authorizationService = authorizationService;
         }
+        #endregion
 
-        #region Main Features
+        #region GET http://localhost:5227/api/v1/reviews
         [AllowAnonymous]
         [HttpGet()]
         public async Task<ActionResult<IEnumerable<ReviewReadDto>>> GetAllReviewsAsync([FromQuery] BaseQueryOptions options)
@@ -28,14 +32,18 @@ namespace Ecommerce.Controller.src.Controller
             var reviews = await _service.GetAllReviewsAsync(options);
             return Ok(reviews);
         }
+        #endregion
 
+        #region GET http://localhost:5227/api/v1/reviews/product/{productId}
         [HttpGet("product/{productId}")]
         public async Task<ActionResult<IEnumerable<ReviewReadDto>>> GetAllReviewsOfProductAsync([FromQuery] Guid productId)
         {
             var reviews = await _service.GetAllReviewsOfProductAsync(productId);
             return Ok(reviews);
         }
+        #endregion
 
+        #region GET http://localhost:5227/api/v1/reviews/{reviewId}
         // Customer auth = CreateAReview's Customer auth or Admin
         [Authorize]
         [HttpGet("{reviewId}")]
@@ -56,7 +64,9 @@ namespace Ecommerce.Controller.src.Controller
 
             return Ok(review);
         }
+        #endregion
 
+        #region POST http://localhost:5227/api/v1/reviews
         [Authorize]
         [HttpPost()]
         public async Task<ActionResult<ReviewReadDto>> CreateReviewAsync([FromBody] ReviewCreateDto reviewCreateDto)
@@ -64,7 +74,9 @@ namespace Ecommerce.Controller.src.Controller
             var userId = GetUserIdClaim();
             return Ok(await _service.CreateReviewAsync(userId, reviewCreateDto));
         }
+        #endregion
 
+        #region PATCH http://localhost:5227/api/v1/reviews/{reviewId}
         // Customer auth = CreateAReview's Customer auth or Admin
         [Authorize]
         [HttpPatch("{reviewId}")]
@@ -81,7 +93,9 @@ namespace Ecommerce.Controller.src.Controller
 
             return Ok(await _service.UpdateReviewByIdAsync(reviewId, reviewUpdateDto));
         }
+        #endregion
 
+        #region DELETE http://localhost:5227/api/v1/reviews/{reviewId}
         // Customer auth = CreateAReview's Customer auth or Admin
         [Authorize]
         [HttpDelete("{reviewId}")]

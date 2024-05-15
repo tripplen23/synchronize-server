@@ -1,4 +1,3 @@
-
 using Ecommerce.Core.src.Entity;
 using Ecommerce.Service.src.ServiceAbstract;
 using Ecommerce.Service.src.DTO;
@@ -41,6 +40,7 @@ namespace Ecommerce.Service.src.Service
             {
                 // if not found, repo will throw AppException.NotFound here
                 var foundCategory = await _categoryRepo.GetCategoryByIdAsync(categoryId);
+                if (foundCategory is null) throw AppException.NotFound("Category not found");
                 var foundCategoryDto = _mapper.Map<Category, CategoryReadDto>(foundCategory);
                 return foundCategoryDto;
             }
@@ -75,7 +75,7 @@ namespace Ecommerce.Service.src.Service
         {
             try
             {
-                 var foundCategory = await _categoryRepo.GetCategoryByIdAsync(categoryId);
+                var foundCategory = await _categoryRepo.GetCategoryByIdAsync(categoryId);
 
                 // validations
                 if (categoryUpdateDto.CategoryName is not null && string.IsNullOrEmpty(categoryUpdateDto.CategoryName)) throw AppException.InvalidInputException("Category name cannot be empty");

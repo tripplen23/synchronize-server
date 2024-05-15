@@ -90,9 +90,9 @@ namespace Ecommerce.Service.src.Service
         {
             try
             {
-                if (newProduct == null)
+                if (newProduct is null)
                 {
-                    throw new ArgumentNullException(nameof(newProduct), "Product cannot be null");
+                    throw AppException.BadRequest("Product cannot be null");
                 }
 
                 // Validate image URLs
@@ -102,13 +102,13 @@ namespace Ecommerce.Service.src.Service
                     foreach (var image in newProduct.ProductImages)
                     {
                         // Check if the URL is provided
-                        if (string.IsNullOrWhiteSpace(image.Url))
+                        if (string.IsNullOrWhiteSpace(image.ImageData))
                         {
-                            throw AppException.InvalidInputException("Image URL cannot be empty");
+                            throw AppException.InvalidInputException("Image Data cannot be empty");
                         }
 
-                        // Check if the URL points to a valid image format 
-                        if (!IsImageUrlValid(image.Url))
+                        // Check if the ImageData points to a valid image format 
+                        if (!IsImageDataValid(image.ImageData))
                         {
                             throw AppException.InvalidInputException("Invalid image format");
                         }
@@ -140,7 +140,7 @@ namespace Ecommerce.Service.src.Service
         {
             if (productId == Guid.Empty)
             {
-                throw new Exception("bad request");
+                throw AppException.BadRequest("Must provide a product to delete");
             }
             try
             {
@@ -170,45 +170,44 @@ namespace Ecommerce.Service.src.Service
                 foundProduct.Title = productUpdateDto.ProductTitle ?? foundProduct.Title;
                 foundProduct.Description = productUpdateDto.ProductDescription ?? foundProduct.Description;
                 foundProduct.CategoryId = productUpdateDto.CategoryId ?? foundProduct.CategoryId;
-
                 foundProduct.Price = productUpdateDto.ProductPrice ?? foundProduct.Price;
+
                 // Update inventory by adding the new inventory value
                 if (productUpdateDto.ProductInventory.HasValue)
                 {
-                    foundProduct.Inventory += productUpdateDto.ProductInventory.Value;
+                    foundProduct.Inventory = productUpdateDto.ProductInventory.Value;
                 }
 
                 // Find product images
                 var productImages = await _productImageRepo.GetProductImagesByProductIdAsync(productId);
-
 
                 // Update product images
                 if (productUpdateDto.ImagesToUpdate is not null && productUpdateDto.ImagesToUpdate.Any())
                 {
                     foreach (var imageDto in productUpdateDto.ImagesToUpdate)
                     {
-                        // Find the image to update by URL
-                        var imageToUpdate = productImages.FirstOrDefault(img => img.Url == imageDto.Url);
+                        // Find the image to update by ImageData
+                        var imageToUpdate = productImages.FirstOrDefault(img => img.ImageData == imageDto.ImageData);
 
                         if (imageToUpdate is not null)
                         {
-                            // Update image URL if it has changed
-                            if (imageToUpdate.Url != imageDto.Url)
+                            // Update ImageData if it has changed
+                            if (imageToUpdate.ImageData != imageDto.ImageData)
                             {
-                                // Update the image URL using the repository method
-                                var updateResult = _productImageRepo.UpdateImageUrlAsync(imageToUpdate.Id, imageDto.Url);
+                                // Update the ImageData using the repository method
+                                var updateResult = _productImageRepo.UpdateImageUrlAsync(imageToUpdate.Id, imageDto.ImageData);
                             }
                         }
                         else
                         {
                             // Handle the case where the image URL from the DTO doesn't match any existing images
-                            throw new Exception($"Image with URL {imageDto.Url} not found.");
+                            throw AppException.NotFound($"Image with with data {imageDto.ImageData} not found.");
                         }
 
-                        // Validate image URL
-                        if (!IsImageUrlValid(imageDto.Url))
+                        // Validate ImageData
+                        if (!IsImageDataValid(imageDto.ImageData))
                         {
-                            throw AppException.InvalidInputException("Invalid image URL format");
+                            throw AppException.InvalidInputException("Invalid ImageData format");
                         }
                     }
                 }
@@ -233,7 +232,7 @@ namespace Ecommerce.Service.src.Service
         }
 
         // Method to validate image URL
-        bool IsImageUrlValid(string imageUrl)
+        bool IsImageDataValid(string ImageData)
         {
             // Regular expression pattern to match common image file extensions (e.g., .jpg, .jpeg, .png, .gif)
             string pattern = @"^(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|jpeg|gif|png)$";
@@ -241,8 +240,8 @@ namespace Ecommerce.Service.src.Service
             // Create a regular expression object
             Regex regex = new Regex(pattern, RegexOptions.IgnoreCase);
 
-            // Check if the URL matches the pattern
-            return regex.IsMatch(imageUrl);
+            // Check if the ImageData matches the pattern
+            return regex.IsMatch(ImageData);
         }
     }
 }

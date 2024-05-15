@@ -121,7 +121,7 @@ namespace Ecommerce.WebAPI.src.Database
             modelBuilder.Entity<Category>(c => c.Property(c => c.Name).HasColumnType("varchar"));
             modelBuilder.Entity<Category>(c => c.Property(c => c.Image).HasColumnType("varchar"));
 
-            modelBuilder.Entity<ProductImage>(i => i.Property(i => i.Url).HasColumnType("varchar"));
+            modelBuilder.Entity<ProductImage>(i => i.Property(i => i.ImageData).HasColumnType("varchar"));
 
             // Relationship, column type and constraint of Product
             modelBuilder.Entity<Product>(product =>

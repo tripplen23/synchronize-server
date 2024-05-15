@@ -4,7 +4,7 @@ namespace Ecommerce.Core.src.Entity
 {
     public class ProductImage : BaseEntity
     {
-        public string Url { get; set; }
+        public string ImageData { get; set; }
         
         [ForeignKey("ProductId")]
         public Guid ProductId { get; set; }

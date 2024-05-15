@@ -7,7 +7,6 @@ namespace Ecommerce.WebAPI.src.Repo
 {
     public class ProductImageRepo : IProductImageRepo
     {
-
         private readonly AppDbContext _context;
         private readonly DbSet<ProductImage> _productImages;
 
@@ -29,7 +28,7 @@ namespace Ecommerce.WebAPI.src.Repo
                 .ToListAsync();
         }
 
-        public async Task UpdateImageUrlAsync(Guid imageId, string newUrl)
+        public async Task UpdateImageUrlAsync(Guid imageId, string newImageData)
         {
             // Retrieve the image by its ID
             var image = await GetImageByIdAsync(imageId);
@@ -37,8 +36,8 @@ namespace Ecommerce.WebAPI.src.Repo
             // Check if the image is found
             if (image != null)
             {
-                // Update the image URL with the new one
-                image.Url = newUrl;
+                // Update the ImageData with the new one
+                image.ImageData = newImageData;
 
                 // Save the changes to the database
                 await _context.SaveChangesAsync();
