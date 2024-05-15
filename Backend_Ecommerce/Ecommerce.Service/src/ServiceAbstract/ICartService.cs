@@ -1,12 +1,13 @@
+using Ecommerce.Core.src.Common;
 using Ecommerce.Service.src.DTO;
 
 namespace Ecommerce.Service.src.ServiceAbstract
 {
     public interface ICartService
     {
-        Task<CartReadDto> GetCartByUserIdAsync(Guid userId);
+        Task<IEnumerable<CartReadDto>> GetAllCartsAsync(BaseQueryOptions options);
+        Task<CartReadDto> GetCartByIdAsync(Guid cartId);
         Task<CartReadDto> CreateCartAsync(Guid userId, CartCreateDto cartCreateDto);
         Task<bool> DeleteCartByIdAsync(Guid cartId);
-        Task<bool> ClearCartAsync(Guid cartId);
     }
 }

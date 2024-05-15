@@ -31,10 +31,10 @@ namespace Ecommerce.WebAPI.src.Repo
 
         public async Task<bool> DeleteCartByIdAsync(Guid cartId)
         {
-            var foundCart = await _context.Carts.FindAsync(cartId);
+            var foundCart = await _carts.FindAsync(cartId);
             if (foundCart != null)
             {
-                _context.Carts.Remove(foundCart);
+                _carts.Remove(foundCart);
                 await _context.SaveChangesAsync();
                 return true;
             }
@@ -46,7 +46,7 @@ namespace Ecommerce.WebAPI.src.Repo
             var query = _context.Carts.AsQueryable();
             if (options != null)
             {
-                query = query.Skip(options.Offset).Take(options.Limit);
+                query = query.Include(c => c.User).Include(c => c.CartItems).Skip(options.Offset).Take(options.Limit);
             }
             return await query.ToListAsync();
         }

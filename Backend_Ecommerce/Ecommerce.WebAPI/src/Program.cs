@@ -78,6 +78,7 @@ builder.Services.AddScoped<ExceptionHandlerMiddleware>(serviceProvider =>
 // Register authorization handler
 builder.Services.AddSingleton<IAuthorizationHandler, AdminOrOwnerAccountHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, AdminOrOwnerOrderHandler>();
+builder.Services.AddSingleton<IAuthorizationHandler, AdminOrOwnerCartHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, AdminOrOwnerReviewHandler>();
 
 // add authentication instructions
@@ -106,6 +107,7 @@ builder.Services.AddAuthorization(
       policy.AddPolicy("ResourceOwner", policy => policy.Requirements.Add(new VerifyResourceOwnerRequirement()));
       policy.AddPolicy("AdminOrOwnerAccount", policy => policy.Requirements.Add(new AdminOrOwnerAccountRequirement()));
       policy.AddPolicy("AdminOrOwnerOrder", policy => policy.Requirements.Add(new AdminOrOwnerOrderRequirement()));
+      policy.AddPolicy("AdminOrOwnerCart", policy => policy.Requirements.Add(new AdminOrOwnerCartRequirement()));
       policy.AddPolicy("AdminOrOwnerReview", policy => policy.Requirements.Add(new AdminOrOwnerReviewRequirement()));
     }
 );

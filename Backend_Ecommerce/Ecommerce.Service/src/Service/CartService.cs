@@ -22,11 +22,6 @@ namespace Ecommerce.Service.src.Service
             _userRepo = userRepo;
         }
 
-        public async Task<bool> ClearCartAsync(Guid cartId)
-        {
-            throw new NotImplementedException();
-        }
-
         public async Task<CartReadDto> CreateCartAsync(Guid userId, CartCreateDto cartCreateDto)
         {
             var foundUser = await _userRepo.GetUserByIdAsync(userId);
@@ -37,7 +32,7 @@ namespace Ecommerce.Service.src.Service
             var existingCart = await _cartRepo.GetCartByUserIdAsync(userId);
             if (existingCart != null)
             {
-                throw AppException.BadRequest("A cart already exists for this user.");
+                throw AppException.BadRequest("This user is already have a cart!");
             }
 
             var cart = _mapper.Map<Cart>(cartCreateDto);
@@ -62,6 +57,45 @@ namespace Ecommerce.Service.src.Service
             return cartReadDto;
         }
 
+        public async Task<IEnumerable<CartReadDto>> GetAllCartsAsync(BaseQueryOptions options)
+        {
+            var cartList = await _cartRepo.GetAllCartsAsync(options);
+            var cartDtos = new List<CartReadDto>();
+
+            foreach (var cart in cartList)
+            {
+                var cartDto = _mapper.Map<CartReadDto>(cart);
+                cartDtos.Add(cartDto);
+            }
+
+            return cartDtos;
+        }
+
+        public async Task<CartReadDto> GetCartByIdAsync(Guid cartId)
+        {
+            if (cartId == Guid.Empty)
+            {
+                throw AppException.BadRequest("CartId is required");
+            }
+            try
+            {
+                var foundCart = await _cartRepo.GetCartByIdAsync(cartId);
+                if (foundCart is null)
+                {
+                    throw AppException.NotFound("Cart not found");
+                }
+                var cartDto = _mapper.Map<CartReadDto>(foundCart);
+                var user = await _userRepo.GetUserByIdAsync(foundCart.UserId);
+                cartDto.User = _mapper.Map<UserReadDto>(user);
+                cartDto.CartItems = _mapper.Map<IEnumerable<CartItemReadDto>>(cartDto.CartItems);
+                return cartDto;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
         public async Task<bool> DeleteCartByIdAsync(Guid cartId)
         {
             if (cartId == Guid.Empty)
@@ -83,23 +117,5 @@ namespace Ecommerce.Service.src.Service
                 throw;
             }
         }
-
-        public async Task<CartReadDto> GetCartByUserIdAsync(Guid userId)
-        {
-            var foundUser = _userRepo.GetUserByIdAsync(userId);
-            if (foundUser is null)
-            {
-                throw AppException.NotFound("User not found");
-            }
-            var foundCart = await _cartRepo.GetCartByUserIdAsync(userId);
-            if (foundCart is null)
-            {
-                throw AppException.NotFound($"user {userId} does not have a cart");
-            }
-
-            var cartReadDto = _mapper.Map<CartReadDto>(foundCart);
-            return cartReadDto;
-        }
-
     }
 }

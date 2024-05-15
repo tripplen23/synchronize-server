@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Ecommerce.Core.src.Common;
 using Ecommerce.Service.src.DTO;
 using Ecommerce.Service.src.ServiceAbstract;
 using Microsoft.AspNetCore.Authorization;
@@ -13,12 +14,14 @@ namespace Ecommerce.Controller.src.Controller
         private ICartService _cartService;
         private ICartItemService _cartItemService;
         private IUserService _userService;
+        private IAuthorizationService _authorizationService;
 
-        public CartController(ICartService cartService, IUserService userService, ICartItemService cartItemService)
+        public CartController(ICartService cartService, IUserService userService, ICartItemService cartItemService, IAuthorizationService authorizationService)
         {
             _cartService = cartService;
             _userService = userService;
             _cartItemService = cartItemService;
+            _authorizationService = authorizationService;
         }
 
         [Authorize]
@@ -27,51 +30,85 @@ namespace Ecommerce.Controller.src.Controller
         {
             var userId = GetUserIdClaim();
             var result = await _cartService.CreateCartAsync(userId, cartCreateDto);
+
             return Ok(result);
         }
 
-        [HttpGet("user/{userId:guid}")]
-        public async Task<ActionResult<CartReadDto>> GetCartByUserIdAsync([FromRoute] Guid userId)
+        [Authorize(Roles = "Admin")]
+        [HttpGet()]
+        public async Task<ActionResult<IEnumerable<CartReadDto>>> GetAllCartsAsync([FromQuery] BaseQueryOptions options)
         {
-            UserReadDto foundUser = await _userService.GetUserByIdAsync(userId);
-            if (foundUser is null)
+            var result = await _cartService.GetAllCartsAsync(options);
+
+            return Ok(result);
+        }
+
+        // Admin and owner
+        [Authorize]
+        [HttpGet("{cartId:guid}")]
+        public async Task<ActionResult<CartReadDto>> GetCartByIdAsync([FromRoute] Guid cartId)
+        {
+            CartReadDto foundCart = await _cartService.GetCartByIdAsync(cartId);
+            var authResult = await _authorizationService.AuthorizeAsync(HttpContext.User, foundCart, "AdminOrOwnerCart");
+
+            if (foundCart is null)
             {
                 return NotFound();
             }
-            var result = await _cartService.GetCartByUserIdAsync(userId);
+
+            if (!authResult.Succeeded)
+            {
+                return Forbid();
+            }
+
+            var result = await _cartService.GetCartByIdAsync(cartId);
+
             return Ok(result);
         }
 
-        [HttpDelete("{cartId}")]
+        // Admin or owner
+        [Authorize]
+        [HttpDelete("{cartId:guid}")]
         public async Task<ActionResult> DeleteCartByIdAsync([FromRoute] Guid cartId)
         {
-            var result = await _cartService.DeleteCartByIdAsync(cartId);
-            if (!result)
+            var foundCart = await _cartService.GetCartByIdAsync(cartId);
+            var authResult = await _authorizationService.AuthorizeAsync(HttpContext.User, foundCart, "AdminOrOwnerCart");
+
+            if (foundCart is null)
             {
                 return NotFound();
             }
+
+            if (!authResult.Succeeded)
+            {
+                return Forbid();
+            }
+
+            await _cartService.DeleteCartByIdAsync(cartId);
             return Ok($"Cart {cartId} deleted successfully");
         }
 
-        [HttpDelete("{cartId}/clear")]
-        public async Task<ActionResult> ClearCartAsync([FromRoute] Guid cartId)
-        {
-            var result = await _cartService.ClearCartAsync(cartId);
-            if (!result)
-            {
-                return NotFound();
-            }
-            return Ok($"Cart {cartId} cleared successfully");
-        }
-
+        // Admin or owner
         [Authorize]
         [HttpPatch("{cartId}")]
         public async Task<ActionResult<CartReadDto>> UpdateCartAsync([FromRoute] Guid cartId, [FromBody] CartUpdateDto cartUpdateDto)
         {
+            var foundCart = await _cartService.GetCartByIdAsync(cartId);
+            var authResult = await _authorizationService.AuthorizeAsync(HttpContext.User, foundCart, "AdminOrOwnerCart");
+
+            if (foundCart is null)
+            {
+                return NotFound();
+            }
+
+            if (!authResult.Succeeded)
+            {
+                return Forbid();
+            }
+
             var result = await _cartItemService.UpdateCartItemQuantityAsync(cartId, cartUpdateDto);
             return Ok(result);
         }
-
 
         #region Helper Methods
         private Guid GetUserIdClaim()
