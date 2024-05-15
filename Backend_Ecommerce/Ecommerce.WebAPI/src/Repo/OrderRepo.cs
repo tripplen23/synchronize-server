@@ -40,7 +40,7 @@ namespace Ecommerce.WebAPI.src.Repo
                         }
                         else
                         {
-                            throw AppException.BadRequest("Product inventory is not enough for the order");
+                            throw AppException.BadRequest($"Insufficient inventory for product: '{foundProduct.Title}'");
                         }
                     }
 

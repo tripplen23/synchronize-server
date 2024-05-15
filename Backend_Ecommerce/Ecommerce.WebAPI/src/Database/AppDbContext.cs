@@ -104,6 +104,9 @@ namespace Ecommerce.WebAPI.src.Database
             modelBuilder.Entity<Cart>()
                 .Property(c => c.CreatedDate)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            modelBuilder.Entity<CartItem>()
+                .Property(ci => ci.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
             modelBuilder.Entity<Review>()
                 .Property(r => r.CreatedDate)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");

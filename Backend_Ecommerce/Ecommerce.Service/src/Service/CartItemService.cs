@@ -11,15 +11,18 @@ namespace Ecommerce.Service.src.Service
     {
         private IMapper _mapper;
         private readonly ICartRepo _cartRepo;
+        private readonly ICartItemRepo _cartItemRepo;
         private readonly IProductRepo _productRepo;
         private readonly IUserRepo _userRepo;
 
-        public CartItemService(ICartRepo cartRepo, IMapper mapper, IProductRepo productRepo, IUserRepo userRepo)
+
+        public CartItemService(ICartRepo cartRepo, IMapper mapper, IProductRepo productRepo, IUserRepo userRepo, ICartItemRepo cartItemRepo)
         {
             _mapper = mapper;
             _cartRepo = cartRepo;
             _productRepo = productRepo;
             _userRepo = userRepo;
+            _cartItemRepo = cartItemRepo;
         }
 
         public async Task<CartReadDto> UpdateCartItemQuantityAsync(Guid cartId, CartUpdateDto cartUpdateDto)
@@ -59,6 +62,21 @@ namespace Ecommerce.Service.src.Service
                         }
                     );
                 }
+            }
+
+            // Remove cart items with quantity 0
+            var itemsToRemove = cartItemsList.Where(ci => ci.Quantity == 0).ToList();
+            foreach (var itemToRemove in itemsToRemove)
+            {
+                await _cartItemRepo.DeleteCartItemByIdAsync(itemToRemove.Id);
+                cartItemsList.Remove(itemToRemove);
+            }
+
+            // If cartItemsList is empty => delete the cart
+            if (cartItemsList.Count == 0)
+            {
+                await _cartRepo.DeleteCartByIdAsync(foundCart.Id);
+                throw AppException.CartIsDeleted("Cart is deleted, please create a new cart with at least one cart item!");
             }
 
             foundCart.CartItems = cartItemsList;

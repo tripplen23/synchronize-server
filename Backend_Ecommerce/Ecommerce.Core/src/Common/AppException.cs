@@ -13,7 +13,7 @@ namespace Ecommerce.Core.src.Common
         }
 
         #region Custom Exceptions
-        public static AppException BadRequest(string message = "Bad Request 1234") // For testing purposes first
+        public static AppException BadRequest(string message = "Bad Request")
         {
             return new AppException(HttpStatusCode.BadRequest, message)
             {
@@ -111,6 +111,26 @@ namespace Ecommerce.Core.src.Common
                 Message = message
             };
         }
+
+        public static AppException InvalidOrderStatusException(string message = "Invalid order status")
+        {
+            return new AppException(HttpStatusCode.BadRequest, message)
+            {
+                StatusCode = HttpStatusCode.BadRequest,
+                Message = message
+            };
+        }
+
+        public static AppException CartIsDeleted(string message)
+        {
+            return new AppException(HttpStatusCode.OK, message)
+            {
+                StatusCode = HttpStatusCode.OK,
+                Message = message
+            };
+        }
+
+
         #endregion
 
     }

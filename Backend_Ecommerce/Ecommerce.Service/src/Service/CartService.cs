@@ -11,15 +11,17 @@ namespace Ecommerce.Service.src.Service
     {
         private IMapper _mapper;
         private readonly ICartRepo _cartRepo;
+        private readonly ICartItemRepo _cartItemRepo;
         private IProductRepo _productRepo;
         private IUserRepo _userRepo;
 
-        public CartService(ICartRepo cartRepo, IMapper mapper, IProductRepo productRepo, IUserRepo userRepo)
+        public CartService(ICartRepo cartRepo, IMapper mapper, IProductRepo productRepo, IUserRepo userRepo, ICartItemRepo cartItemRepo)
         {
             _mapper = mapper;
             _cartRepo = cartRepo;
             _productRepo = productRepo;
             _userRepo = userRepo;
+            _cartItemRepo = cartItemRepo;
         }
 
         public async Task<CartReadDto> CreateCartAsync(Guid userId, CartCreateDto cartCreateDto)
@@ -51,6 +53,14 @@ namespace Ecommerce.Service.src.Service
                     Quantity = cartItemDto.Quantity
                 });
             }
+            // Remove cart items with quantity 0
+            var itemsToRemove = newCartItems.Where(ci => ci.Quantity == 0).ToList();
+            foreach (var itemToRemove in itemsToRemove)
+            {
+                await _cartItemRepo.DeleteCartItemByIdAsync(itemToRemove.Id);
+                newCartItems.Remove(itemToRemove);
+            }
+
             cart.CartItems = newCartItems;
             var createdCart = await _cartRepo.CreateCartAsync(cart);
             var cartReadDto = _mapper.Map<CartReadDto>(createdCart);

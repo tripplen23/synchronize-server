@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Ecommerce.Core.src.Entity
 {
-    public class CartItem
+    public class CartItem : BaseEntity
     {
         [ForeignKey("CartId")]
         public Guid CartId { get; set; }
