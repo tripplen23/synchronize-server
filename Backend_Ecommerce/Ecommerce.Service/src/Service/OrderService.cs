@@ -26,6 +26,7 @@ namespace Ecommerce.Service.src.Service
         public async Task<OrderReadDto> CreateOrderAsync(Guid userId, OrderCreateDto orderCreateDto)
         {
             var foundUser = await _userRepo.GetUserByIdAsync(userId);
+
             if (foundUser is null)
             {
                 throw AppException.NotFound("User not found");

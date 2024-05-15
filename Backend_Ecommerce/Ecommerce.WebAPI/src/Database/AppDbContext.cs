@@ -77,7 +77,7 @@ namespace Ecommerce.WebAPI.src.Database
                 .WithOne(c => c.User)
                 .HasForeignKey<Cart>(c => c.UserId);
 
-            // Unique constraint
+            // constraints
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Email)
                 .IsUnique();
@@ -109,9 +109,9 @@ namespace Ecommerce.WebAPI.src.Database
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             // Setting column type
-            modelBuilder.Entity<User>(u => u.Property(u => u.Name).HasColumnType("varchar(20)"));
+            modelBuilder.Entity<User>(u => u.Property(u => u.Name).HasColumnType("varchar(255)"));
             modelBuilder.Entity<User>(u => u.Property(u => u.Password).HasColumnType("varchar"));
-            modelBuilder.Entity<User>(u => u.Property(u => u.Email).HasColumnType("varchar(50)"));
+            modelBuilder.Entity<User>(u => u.Property(u => u.Email).HasColumnType("varchar(255)"));
             modelBuilder.Entity<User>(u => u.Property(u => u.Avatar).HasColumnType("varchar(255)"));
             modelBuilder.Entity<User>(u => u.Property(u => u.Salt).HasColumnType("bytea"));
 

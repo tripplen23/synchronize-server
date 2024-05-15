@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 using AutoMapper;
 using Ecommerce.Core.src.Common;
@@ -11,7 +10,6 @@ namespace Ecommerce.Service.src.Service
 {
     public class ProductService : IProductService
     {
-
         private readonly IProductRepo _productRepo;
         private IMapper _mapper;
         private readonly ICategoryRepo _categoryRepo;
@@ -27,12 +25,10 @@ namespace Ecommerce.Service.src.Service
 
         public async Task<IEnumerable<ProductReadDto>> GetAllProductsAsync(ProductQueryOptions? productQueryOptions)
         {
-
             try
             {
                 var products = await _productRepo.GetAllProductsAsync(productQueryOptions);
                 var productDtos = _mapper.Map<List<ProductReadDto>>(products);
-
 
                 foreach (var productDto in productDtos)
                 {
@@ -90,25 +86,13 @@ namespace Ecommerce.Service.src.Service
             }
         }
 
-
         public async Task<ProductReadDto> CreateProductAsync(ProductCreateDto newProduct)
         {
             try
             {
                 if (newProduct == null)
                 {
-                    throw new ArgumentNullException(nameof(newProduct), "ProductC cannot be null");
-                }
-                // Check if the product name is provided
-                if (string.IsNullOrWhiteSpace(newProduct.ProductTitle))
-                {
-                    throw AppException.InvalidInputException("Product name cannot be empty");
-                }
-
-                // Check if the price is greater than zero
-                if (newProduct.ProductPrice <= 0)
-                {
-                    throw AppException.InvalidInputException("Price should be greated than zero.");
+                    throw new ArgumentNullException(nameof(newProduct), "Product cannot be null");
                 }
 
                 // Validate image URLs
@@ -177,13 +161,6 @@ namespace Ecommerce.Service.src.Service
             }
         }
 
-
-        public Task<IEnumerable<ProductReadDto>> GetMostPurchasedProductsAsync(int topNumber)
-        {
-            throw new NotImplementedException();
-        }
-
-
         public async Task<ProductReadDto> UpdateProductByIdAsync(Guid productId, ProductUpdateDto productUpdateDto)
         {
             try
@@ -235,8 +212,6 @@ namespace Ecommerce.Service.src.Service
                         }
                     }
                 }
-
-
                 // Save changes to the database
                 var updatedProduct = await _productRepo.UpdateProductByIdAsync(foundProduct);
 
@@ -256,6 +231,7 @@ namespace Ecommerce.Service.src.Service
                 throw;
             }
         }
+
         // Method to validate image URL
         bool IsImageUrlValid(string imageUrl)
         {

@@ -27,8 +27,22 @@ namespace Ecommerce.WebAPI.src.Repo
             {
                 try
                 {
-                    // TODO: Funtion for updating the decrease of product inventory due to the quantity in the product order. (Will be implemented when having the product inventory).
-                    // TODO: Total price of transaction...
+                    // TODO: Updating the decrease of product inventory due to the quantity in the product order.
+                    foreach (var orderProduct in createdOrder.OrderProducts)
+                    {
+                        var foundProduct = _products.FirstOrDefault(product => product == orderProduct.Product);
+                        if (foundProduct.Inventory >= orderProduct.Quantity)
+                        {
+                            foundProduct.Inventory -= orderProduct.Quantity;
+                            _context.Products.Update(foundProduct);
+                            foundProduct.UpdatedDate = DateOnly.FromDateTime(DateTime.Now);
+                            _context.SaveChanges();
+                        }
+                        else
+                        {
+                            throw AppException.BadRequest("Product inventory is not enough for the order");
+                        }
+                    }
 
                     await _orders.AddAsync(createdOrder);
                     await _context.SaveChangesAsync();
@@ -51,10 +65,29 @@ namespace Ecommerce.WebAPI.src.Repo
             {
                 throw AppException.NotFound("Order not found for ID: " + orderId);
             }
+            using (var transaction = _context.Database.BeginTransaction())
+            {
+                try
+                {
+                    foreach (var orderProduct in foundOrder.OrderProducts)
+                    {
+                        var foundProduct = orderProduct.Product;
+                        foundProduct.Inventory += orderProduct.Quantity;
+                        _context.Products.Update(foundProduct);
+                    }
 
-            _orders.Remove(foundOrder);
-            await _context.SaveChangesAsync();
-            return true;
+                    _orders.Remove(foundOrder);
+                    await _context.SaveChangesAsync();
+                    transaction.Commit();
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    System.Console.WriteLine(e.Message);
+                    transaction.Rollback();
+                    throw;
+                }
+            }
         }
 
         public async Task<IEnumerable<Order>> GetAllOrdersAsync(BaseQueryOptions? options)

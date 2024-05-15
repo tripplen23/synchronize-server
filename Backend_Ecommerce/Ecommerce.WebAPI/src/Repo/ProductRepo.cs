@@ -3,10 +3,12 @@ using Ecommerce.Core.src.Common;
 using Ecommerce.WebAPI.src.Database;
 using Ecommerce.Core.src.RepoAbstract;
 using Microsoft.EntityFrameworkCore;
+
 namespace Ecommerce.WebAPI.src.Repo
 {
     public class ProductRepo : IProductRepo
     {
+        #region snippet_ProductRepo
         private readonly AppDbContext _context;
         private readonly DbSet<Product> _products;
 
@@ -15,21 +17,20 @@ namespace Ecommerce.WebAPI.src.Repo
             _context = context;
             _products = _context.Products;
         }
+        #endregion
 
         public async Task<Product> CreateProductAsync(Product newProduct)
         {
             var foundProduct = await _products.FirstOrDefaultAsync(p => p.Title == newProduct.Title);
-            if (foundProduct is null)
-            {
-                await _products.AddAsync(newProduct);
-                await _context.SaveChangesAsync();
-                return newProduct;
-            }
-            else
+
+            if (foundProduct is not null)
             {
                 throw AppException.DuplicateEmailException("Product Title already exist");
             }
-
+            
+            await _products.AddAsync(newProduct);
+            await _context.SaveChangesAsync();
+            return newProduct;
         }
 
         public async Task<bool> DeleteProductByIdAsync(Guid productId)
@@ -55,7 +56,6 @@ namespace Ecommerce.WebAPI.src.Repo
                 // Filter by search title
                 if (!string.IsNullOrEmpty(options.Title))
                 {
-
                     var lowercaseTitle = options.Title.ToLower(); // Convert title to lowercase
                     query = query.Where(p => p.Title.ToLower().Contains(lowercaseTitle));
 
@@ -96,7 +96,6 @@ namespace Ecommerce.WebAPI.src.Repo
                             break;
                     }
                 }
-
                 // Pagination
                 query = query.Skip(options.Offset).Take(options.Limit);
             }
@@ -112,17 +111,6 @@ namespace Ecommerce.WebAPI.src.Repo
             .Include(p => p.ProductImages)
             .Where(p => p.CategoryId == categoryId).ToListAsync();
             return products;
-        }
-
-        public async Task<IEnumerable<Product>> GetMostPurchasedProductsAsync(int topNumber)
-        {
-            var parameters = new List<object> { topNumber };
-
-            var mostPurchasedProducts = await _products
-                .FromSqlRaw("SELECT * FROM public.get_most_purchased_products({0})", parameters.ToArray())
-                .ToListAsync();
-
-            return mostPurchasedProducts;
         }
 
         public async Task<Product> GetProductByIdAsync(Guid productId)
