@@ -71,7 +71,6 @@ namespace Ecommerce.WebAPI.src.Repo
             var user = await _users.AddAsync(newUser);
             await _context.SaveChangesAsync();
             return newUser;
-
         }
 
         public async Task<User> UpdateUserByIdAsync(User updatedUser)

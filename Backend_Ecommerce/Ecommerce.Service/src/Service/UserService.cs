@@ -77,7 +77,7 @@ namespace Ecommerce.Service.src.Service
             {
                 // validation
                 if (string.IsNullOrEmpty(userCreateDto.UserName)) throw AppException.InvalidInputException("User name cannot be empty");
-                if (userCreateDto.UserName.Length > 20) throw AppException.InvalidInputException("User name cannot be longer than 20 characters");
+                if (userCreateDto.UserName.Length > 255) throw AppException.InvalidInputException("User name cannot be longer than 255 characters");
 
                 string emailPattern = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
                 // Create Regex object
