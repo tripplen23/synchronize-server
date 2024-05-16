@@ -23,7 +23,7 @@ namespace Ecommerce.Service.src.Service
 
         public async Task<string> LoginAsync(UserCredential userCredential)
         {
-            var foundUser = await _userRepo.GetUserByEmailAsync(userCredential.Email) ?? throw AppException.NotFound("Email is not registered");
+            var foundUser = await _userRepo.GetUserByEmailAsync(userCredential.Email) ?? throw AppException.NotFound($"Email - {userCredential.Email} is not registered");
 
             var isMatch = _passwordService.VerifyPassword(userCredential.Password, foundUser.Password, foundUser.Salt);
             if (isMatch)
