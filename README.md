@@ -1,98 +1,314 @@
-# Fullstack Project
+# Fullstack Project of Binh Nguyen - Ecommerce inspiration
 
-![TypeScript](https://img.shields.io/badge/TypeScript-v.4-green)
-![SASS](https://img.shields.io/badge/SASS-v.4-hotpink)
-![React](https://img.shields.io/badge/React-v.18-blue)
-![Redux toolkit](https://img.shields.io/badge/Redux-v.1.9-brown)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-v.16-blue)
+![PgAdmin 4](https://img.shields.io/badge/PgAdmin%204-v.8.2-lightblue)
 ![.NET Core](https://img.shields.io/badge/.NET%20Core-v.8-purple)
 ![EF Core](https://img.shields.io/badge/EF%20Core-v.8-cyan)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-v.16-drakblue)
+![XUnit](https://img.shields.io/badge/XUnit-v.2.4.2-green)
+![Moq](https://img.shields.io/badge/Moq-v.4.20-pink)
+![TypeScript](https://img.shields.io/badge/TypeScript-v.4-green)
+![React](https://img.shields.io/badge/React-v.18.2-blue)
+![Redux toolkit](https://img.shields.io/badge/Redux-v.2.2-brown)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-v.3.4.1-lightblue)
 
-This project involves creating a Fullstack project with React and Redux in the frontend and ASP.NET Core 7 in the backend. The goal is to provide a seamless experience for users, along with robust management system for administrators.
+## Project Description
 
-- Frontend: SASS, TypeScript, React, Redux Toolkit
-- Backend: ASP.NET Core, Entity Framework Core, PostgreSQL
+The project was done as a final project at [Integrify](https://www.integrify.io/) bootcamp. It will offer core functionality concepts for a typical Ecommerce Website.
 
-You can follow the same topics as your backend project or choose the alternative one, between E-commerce and Library. You can reuse the previous frontend project, with necessary modification to fit your backend server.
+### Project overview
+
+This repository contains the backend server for an E-Commerce Platform. The project implements RESTful API endpoints for managing users, products, orders, carts, categories, and reviews.
+
+**NOTE**: The frontend repository can be found [here]()
+Link to deployed page of the frontend:
 
 ## Table of Contents
 
-1. [Instruction](#instruction)
-2. [Features](#features)
-   - [Mandatory features](#mandatory-features)
-   - [Extra features](#extra-features)
-3. [Requirements](#requirements)
-4. [Getting Started](#getting-started)
-5. [Testing](#testing)
+- [Technologies](#technologies)
+- [Getting start](#getting-start)
+- [Folder structure](#folder-structure)
+- [Relational database design](#relational-database-design)
+- [Functionalities](#functionalities)
+- [RESTful API design](#restful-api-design)
+- [CLEAN Architecture](#clean-architecture)
+- [Data flow](#data-flow-of-the-application:)
+- [Extensive design](#extensive-design)
 
-## Instruction
+## Technologies
 
-This repository should be used only for backend server. The frontend server should be done in a separate repository [here](https://github.com/Integrify-Finland/fs17-Frontend-project). You can modify your previous frontend project and instructors will check the submissions (pull requests) in the frontend project repository. The modified frontend server need to be connected with this backend server to make a whole fullstack project.
+- **Frontend**: TailwindCSS, TypeScript, React, Redux Toolkit
+- **Backend**: ASP.NET Core, Entity Framework Core, PostgreSQL
+- **Testing**: Jest for frontend and XUnit, Moq for backend
+- **Deployment**:
 
-### Frontend
+## Getting start
 
-If you only modify the previoud frontend project, you can work on the same repository and there is no need to open new pull request. However, you can get back to your previous pull request and remove all the labels. In case you want to make new project from scratch, you can fork and clone the original repository and open new pullrequest for your new frontend.
+1. Open your terminal and clone the front-end repository with the following command:
 
-### Backend
+```
+git clone https://github.com/tripplen23/fs17-Frontend-project.git
+```
 
-Generate a solution file in this repository. All the project layers of backend server should be added into this solution.
+2. Next, clone the back-end repository:
 
-## Features
+```
+git clone https://github.com/tripplen23/fs17_CSharp_FullStack.git
+```
 
-### Mandatory features
+3. Navigate the Web API layer in the back-end directory.
 
-#### User Functionalities
+```
+  cd Backend_Ecommerce
+  cd Backend_Ecommerce/Ecommerce.WebAPI
+```
 
-1. User Management: Users should be able to register for an account and manage their profile.
-2. Browse Products: Users should be able to view all available products and single product, search and sort products.
-3. Add to Cart: Users should be able to add products to a shopping cart, and manage cart.
-4. Oders: Users should be able to place orders and see the history of their orders.
+4. Set up your database connection in `appsettings.json` file with these values, replace them with your own database info:
 
-#### Admin Functionalities
+```
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*",
+  "ConnectionStrings": {
+    "Localhost": "Host=localhost;Username=<your db username>;Database=<your db name>;Password=<your password>" // Password is optional depend if the user setup the password for admin or not
+  },
+  "Secrets": {
+    "JwtKey": "[Your JWT Key]",
+    "Issuer": "[Your Custom Name]"
+  }
+```
 
-1. User Management: Admins should be able to manage all users.
-2. Product Management: Admins should be able to manage all products.
-3. Order Management: Admins should be able to manage all orders.
+5. Try to build the application
 
-### Bonus-point 
+```
+dotnet build
+```
 
-1. Third party integrations, for example: Google Authentication, Sending Email, Payment gateway, etc.
-2. Extra features, for examples: dynamic pricing algorithms, chatbots, subscription, admin dashboard with analytics, etc.
+6. If build successfully, run this command to create a new Migrations folder, which stores the snapshot of all the database context changes:
+   _If there is already a folder Migrations in the Web API layer, delete it._
 
-## Requirements
+```
+dotnet ef database drop
+dotnet ef migrations add Create
+```
 
-1. Project should use CLEAN architecture, proper naming convention, security, and comply with Rest API. In README file, explain the structure of your project as well.
-2. Error handler: This will ensure any exceptions thrown in your application are handled appropriately and helpful error messages are returned.
-3. In backend server, unit testing (xunit) should be done, at least for Service(Use case) layer. We recommend to test entities, repositories and controllers as well.
-4. Document with Swagger: Make sure to annotate your API endpoints and generate a Swagger UI for easier testing and documentation.
-5. `README` file should sufficiently describe the project, as well as the deployment, link to frontend github.
-6. Frontend, backend, and database servers need to be available in the live servers.  
+7. Apply all the changes to the database
 
-## Getting Started
+```
+dotnet ef database update
+```
 
-1. Start with backend first before moving to frontend.
-2. In the backend, here is the recommended order:
+8. Then run the backend
 
-   - Plan Your Database Schema before start coding
+```
+dotnet watch
+```
 
-   - Set Up the Project Structure
+9. Then navigate to the Frontend Project, install all the necessary dependencies
 
-   - Build the models
+```
+npm install
+```
 
-   - Create the Repositories
+10. Then run the frontend
 
-   - Build the Services
+```
+npm start
+```
 
-   - Set Up Authentication & Authorization
+## Folder structure
 
-   - Build the Controllers
+```
+.
+├── Backend_Ecommerce
+│   ├── Backend_Ecommerce.sln
+│   ├── Ecommerce.Controller
+│   │   ├── Ecommerce.Controller.csproj
+│   │   └── src
+│   │       └── Controller
+│   │           ├── AuthController.cs
+│   │           ├── CartController.cs
+│   │           ├── CategoryController.cs
+│   │           ├── OrderController.cs
+│   │           ├── ProductController.cs
+│   │           ├── ReviewController.cs
+│   │           └── UserController.cs
+│   ├── Ecommerce.Core
+│   │   ├── Ecommerce.Core.csproj
+│   │   └── src
+│   │       ├── Common
+│   │       │   ├── AppException.cs
+│   │       │   ├── BaseQueryOptions.cs
+│   │       │   ├── ProductQueryOptions.cs
+│   │       │   ├── UserCredential.cs
+│   │       │   └── UserQueryOptions.cs
+│   │       ├── Entity
+│   │       │   ├── CartAggregate
+│   │       │   |	  ├── Cart.cs
+│   │       │   |	  └── CartItem.cs
+│   │       │   ├── OrderAggregate
+│   │       │   |	  ├── Order.cs
+│   │       │   |	  └── OrderProduct.cs
+│   │       │   ├── BaseEntity.cs
+│   │       │   ├── Category.cs
+│   │       │   ├── Product.cs
+│   │       │   ├── ProductImage.cs
+│   │       │   ├── Review.cs
+│   │       │   ├── ShippingInfo.cs
+│   │       │   ├── TimeStamp.cs
+│   │       │   └── User.cs
+│   │       ├── RepoAbstract
+│   │       │   ├── ICartItemRepo.cs
+│   │       │   ├── ICartRepo.cs
+│   │       │   ├── ICategoryRepo.cs
+│   │       │   ├── IOrderRepo.cs
+│   │       │   ├── IProductImageRepo.cs
+│   │       │   ├── IProductRepo.cs
+│   │       │   ├── IReviewRepo.cs
+│   │       │   └── IUserRepo.cs
+│   │       └── ValueObject
+│   │           ├── OrderStatus.cs
+│   │           └── UserRole.cs
+│   ├── Ecommerce.Service
+│   │   ├── Ecommerce.Service.csproj
+│   │   └── src
+│   │       ├── DTO
+│   │       │   ├── CartDto.cs
+│   │       │   ├── CartItemDto.cs
+│   │       │   ├── CategoryDto.cs
+│   │       │   ├── OrderDto.cs
+│   │       │   ├── OrderProductDto.cs
+│   │       │   ├── ProductImageDto.cs
+│   │       │   ├── ProductDto.cs
+│   │       │   ├── ReviewDto.cs
+│   │       │   ├── ShippingInfoDto.cs
+│   │       │   └── UserDto.cs
+│   │       ├── Service
+│   │       │   ├── AuthService.cs
+│   │       │   ├── CartItemService.cs
+│   │       │   ├── CartService.cs
+│   │       │   ├── CategoryService.cs
+│   │       │   ├── OrderService.cs
+│   │       │   ├── ProductService.cs
+│   │       │   ├── ReviewService.cs
+│   │       │   └── UserService.cs
+│   │       ├── ServiceAbstract
+│   │       │   ├── IAuthService.cs
+│   │       │   ├── ICartItemService.cs
+│   │       │   ├── ICartService.cs
+│   │       │   ├── ICategoryService.cs
+│   │       │   ├── IOrderService.cs
+│   │       │   ├── IPasswordService.cs
+│   │       │   ├── IProductImageService.cs
+│   │       │   ├── IProductService.cs
+│   │       │   ├── IReviewService.cs
+│   │       │   ├── ITokenService.cs
+│   │       │   └── IUserService.cs
+│   │       └── Shared
+│   │           └── MapperProfile.cs
+│   ├── Ecommerce.Test
+│   │   ├── Ecommerce.Test.csproj
+│   │   └── src
+│   │       ├── Core
+│   │       │   └── removeme.txt
+│   │       └── Service
+│   │           ├── CategoryServiceTest.cs
+│   │           ├── OrderServiceTest.cs
+│   │           ├── ProductServiceTests.cs
+│   │           ├── ReviewServiceTest.cs
+│   │           └── UserServiceTest.cs
+│   ├── Ecommerce.WebAPI
+│   │   ├── Ecommerce.WebAPI.csproj
+│   │   ├── Ecommerce.WebAPI.http
+│   │   ├── Properties
+│   │   │   └── launchSettings.json
+│   │   ├── appsettings.Development.json
+│   │   ├── appsettings.json
+│   │   └── src
+│   │       ├── AuthorizationPolicy
+│   │       |   ├── AdminOrOwnerAccountRequirement.cs
+│   │       │   ├── AdminOrOwnerCartRequirement.cs
+│   │       │   ├── AdminOrOwnerOrderRequirement.cs
+│   │       │   └── AdminOrOwnerReviewRequirement.cs
+│   │       ├── Database
+│   │       |   ├── AppDbContext.cs
+│   │       │   ├── SeedingData.cs
+│   │       │   └── TimeStampInterceptor.cs
+│   │       ├── ExternalService
+│   │       │   ├── PasswordService.cs
+│   │       │   └── TokenService.cs
+│   │       ├── Middleware
+│   │       │   └── ExceptionHandlerMiddleware.cs
+│   │       ├── Program.cs
+│   │       └── Repo
+│   │           ├── CategoryRepo.cs
+│   │           ├── OrderRepo.cs
+│   │           ├── ProductRepo.cs
+│   │           ├── ReviewRepo.cs
+│   │           └── UserRepo.cs
+└── README.md
+```
 
-   - Implement Error Handling Middleware
+## Relational database design
 
-3. You should focus on the mandatory features first. Make sure you have minimal working project before opting for advanced functionalities.
+![erd](image/README/erd.png)
 
-Testing should be done along the development circle, early and regularly.
+## Functionalities
 
-## Testing
 
-Unit testing, and optionally integration testing, must be included for both frontend and backend code. Aim for high test coverage and ensure all major functionalities are covered.
+
+## RESTful API design
+
+Check [/Endpoints](https://github.com/yuankeMiao/fs17_CSharp_8-BackendTeamwork/tree/main/Endpoints) folder for all api endpoints and the usage, or click the links below to check descriptions and example request & response for each endpoint.
+
+![swaggerUI](https://github.com/yuankeMiao/fs17_CSharp_8-BackendTeamwork/assets/109540749/96c327ac-2ed7-4fc6-ab8d-7a752625f9d8)
+
+## CLEAN Architecture
+
+![image](https://github.com/yuankeMiao/fs17_CSharp_8-BackendTeamwork/assets/114677249/0f37b987-9f8f-4dc5-a975-1d6ecf10f01c)
+
+This project follows the principles of Clean Architecture, emphasizing separation of concerns and modularity. It is organized into several layers, each with distinct responsibilities.
+
+1. Core Domain Layer (Ecommerce.Core)
+
+- Centralizes core domain logic and entities.
+- Includes common functionalities, repository abstractions, and value objects.
+
+2. Application Service Layer (Ecommerce.Service)
+
+- Implements business logic and orchestrates interactions between controllers and the core domain.
+- Services handle DTO transformations and business operations related to each resource.
+
+3. Controller Layer (Ecommerce.Controller)
+
+- Contains controllers responsible for handling HTTP requests and responses.
+- Controllers are organised by resource types (e.g., Auth, Category, Order, Product, Review, User).
+
+4. Infrastructure Layer (Ecommerce.WebAPI)
+
+- Manages infrastructure tasks and interaction with external systems.
+- Contains database context, repositories, and middleware for error handling.
+
+5. Testing Layer (Ecommerce.Test)
+
+- Holds unit tests for core domain and application services.
+- Ensures the reliability and correctness of the implemented functionalities.
+
+### Data flow of the application:
+
+![image](https://github.com/tripplen23/fs17_CSharp_8-BackendTeamwork/assets/114677249/4b058b32-0b07-4c3f-b752-50e34985a57f)
+
+### Testing
+
+Run tests:
+
+- Navigate to root folder of backend module, then run the test
+
+```
+dotnet test
+```
+
+## Extensive design
