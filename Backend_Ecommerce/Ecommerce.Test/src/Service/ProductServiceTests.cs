@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using AutoMapper;
 using Ecommerce.Core.src.Common;
 using Ecommerce.Core.src.Entity;
@@ -15,13 +12,16 @@ namespace Ecommerce.Tests
 {
     public class ProductServiceTests
     {
+        #region Fields 
         private readonly Mock<IProductRepo> _productRepoMock;
         private readonly Mock<ICategoryRepo> _categoryRepoMock;
         private readonly Mock<IProductImageRepo> _productImageRepoMock;
         private readonly Mock<IProductImageService> _productImageServiceMock;
         private readonly IMapper _mapper;
         private readonly ProductService _productService;
+        #endregion
 
+        #region Constructors
         public ProductServiceTests()
         {
             _productRepoMock = new Mock<IProductRepo>();
@@ -42,7 +42,9 @@ namespace Ecommerce.Tests
             _mapper = config.CreateMapper();
             _productService = new ProductService(_productRepoMock.Object, _mapper, _categoryRepoMock.Object, _productImageRepoMock.Object, _productImageServiceMock.Object);
         }
+        #endregion
 
+        #region GET
         [Fact]
         public async Task GetAllProductsAsync_ShouldReturnProductList()
         {
@@ -145,7 +147,9 @@ namespace Ecommerce.Tests
             // Act & Assert
             await Assert.ThrowsAsync<AppException>(() => _productService.GetProductByIdAsync(productId));
         }
+        #endregion
 
+        #region POST
         [Fact]
         public async Task CreateProductAsync_ShouldReturnCreatedProduct()
         {
@@ -185,7 +189,8 @@ namespace Ecommerce.Tests
             var productCreateDto = new ProductCreateDto { ProductDescription = "Description 1", ProductPrice = 100, CategoryId = Guid.NewGuid() };
 
             // Act & Assert
-            await Assert.ThrowsAsync<AppException>(() => _productService.CreateProductAsync(productCreateDto));
+            var exception = await Assert.ThrowsAsync<AppException>(() => _productService.CreateProductAsync(productCreateDto));
+            Assert.Equal("Product title is required", exception.Message);
         }
 
         [Fact]
@@ -205,9 +210,96 @@ namespace Ecommerce.Tests
             _categoryRepoMock.Setup(repo => repo.GetCategoryByIdAsync(productCreateDto.CategoryId)).ReturnsAsync(new Category { Id = productCreateDto.CategoryId });
 
             // Act & Assert
-            await Assert.ThrowsAsync<AppException>(() => _productService.CreateProductAsync(productCreateDto));
+            var exception = await Assert.ThrowsAsync<AppException>(() => _productService.CreateProductAsync(productCreateDto));
+            Assert.Equal("Image Data cannot be empty or null", exception.Message);
         }
 
+        [Fact]
+        public async Task CreateProductAsync_WithDuplicateProductTitle_ShouldThrowException()
+        {
+            // Arrange
+            var productCreateDto = new ProductCreateDto
+            {
+                ProductTitle = "Existing Product",
+                CategoryId = Guid.NewGuid(),
+                ProductImages = new List<ProductImageCreateDto> { new ProductImageCreateDto { ImageData = "https://fastly.picsum.photos/id/491/200/200.jpg?hmac=Zi1sOp0NH_d3eOa3qUg8-oDQJWvIkH8UkrAJZ7l-4wg" } },
+                ProductInventory = 10
+            };
+
+            var existingProduct = new Product
+            {
+                Id = Guid.NewGuid(),
+                Title = "Existing Product",
+                CategoryId = productCreateDto.CategoryId
+            };
+
+            _productRepoMock.Setup(repo => repo.GetAllProductsAsync(null)).ReturnsAsync(new List<Product> { existingProduct });
+            _categoryRepoMock.Setup(repo => repo.GetCategoryByIdAsync(productCreateDto.CategoryId)).ReturnsAsync(new Category { Id = productCreateDto.CategoryId });
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<AppException>(() => _productService.CreateProductAsync(productCreateDto));
+            Assert.Equal("Product title is already in use, please choose another title", exception.Message);
+        }
+
+        [Fact]
+        public async Task CreateProductAsync_NegativeProductInventory_ShouldThrowException()
+        {
+            // Arrange
+            var productCreateDto = new ProductCreateDto
+            {
+                ProductTitle = "Valid Product",
+                CategoryId = Guid.NewGuid(),
+                ProductImages = new List<ProductImageCreateDto> { new ProductImageCreateDto { ImageData = "https://fastly.picsum.photos/id/491/200/200.jpg?hmac=Zi1sOp0NH_d3eOa3qUg8-oDQJWvIkH8UkrAJZ7l-4wg" } },
+                ProductInventory = -1 // Negative inventory
+            };
+
+            _categoryRepoMock.Setup(repo => repo.GetCategoryByIdAsync(productCreateDto.CategoryId)).ReturnsAsync(new Category { Id = productCreateDto.CategoryId });
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<AppException>(() => _productService.CreateProductAsync(productCreateDto));
+            Assert.Equal("Product inventory cannot be negative", exception.Message);
+        }
+
+        [Fact]
+        public async Task CreateProductAsync_WithInvalidProductPrice_ShouldThrowException()
+        {
+            // Arrange
+            var productCreateDto = new ProductCreateDto
+            {
+                ProductTitle = "Product 1",
+                ProductDescription = "Description 1",
+                ProductPrice = -100,
+                CategoryId = Guid.NewGuid()
+            };
+
+            _categoryRepoMock.Setup(repo => repo.GetCategoryByIdAsync(productCreateDto.CategoryId)).ReturnsAsync(new Category { Id = productCreateDto.CategoryId });
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<AppException>(() => _productService.CreateProductAsync(productCreateDto));
+            Assert.Equal("Product price cannot be negative", exception.Message);
+        }
+
+        [Fact]
+        public async Task CreateProductAsync_WithInvalidProductTitle_ShouldThrowException()
+        {
+            // Arrange
+            var productCreateDto = new ProductCreateDto
+            {
+                ProductTitle = "",
+                ProductDescription = "Description 1",
+                ProductPrice = 100,
+                CategoryId = Guid.NewGuid()
+            };
+
+            _categoryRepoMock.Setup(repo => repo.GetCategoryByIdAsync(productCreateDto.CategoryId)).ReturnsAsync(new Category { Id = productCreateDto.CategoryId });
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<AppException>(() => _productService.CreateProductAsync(productCreateDto));
+            Assert.Equal("Product title must be at least 3 characters long", exception.Message);
+        }
+        #endregion
+
+        #region PATCH
         [Fact]
         public async Task UpdateProductAsync_ShouldReturnUpdatedProduct()
         {
@@ -258,5 +350,158 @@ namespace Ecommerce.Tests
             var exception = await Assert.ThrowsAsync<AppException>(() => _productService.UpdateProductByIdAsync(productId, productUpdateDto));
             Assert.Equal("Product not found", exception.Message);
         }
+
+        [Fact]
+        public async Task UpdateProductAsync_WithInvalidCategory_ShouldThrowException()
+        {
+            // Arrange
+            var productId = Guid.NewGuid();
+            var productUpdateDto = new ProductUpdateDto
+            {
+                ProductTitle = "Product 1",
+                ProductDescription = "Description 1",
+                ProductPrice = 100,
+                CategoryId = Guid.NewGuid()
+            };
+            var product = new Product
+            {
+                Id = productId,
+                Title = productUpdateDto.ProductTitle,
+                Description = productUpdateDto.ProductDescription,
+                Price = (decimal)productUpdateDto.ProductPrice,
+                CategoryId = productUpdateDto.CategoryId.Value
+            };
+
+            _productRepoMock.Setup(repo => repo.GetProductByIdAsync(productId)).ReturnsAsync(product);
+
+            _categoryRepoMock.Setup(repo => repo.GetCategoryByIdAsync(productUpdateDto.CategoryId.Value)).ReturnsAsync((Category)null);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<AppException>(() => _productService.UpdateProductByIdAsync(productId, productUpdateDto));
+            Assert.Equal("Category not found", exception.Message);
+        }
+
+        [Fact]
+        public async Task UpdateProductAsync_WithInvalidProductPrice_ShouldThrowException()
+        {
+            // Arrange
+            var productId = Guid.NewGuid();
+            var productUpdateDto = new ProductUpdateDto
+            {
+                ProductTitle = "Product 1",
+                ProductDescription = "Description 1",
+                ProductPrice = -100,
+                CategoryId = Guid.NewGuid()
+            };
+            var product = new Product
+            {
+                Id = productId,
+                Title = productUpdateDto.ProductTitle,
+                Description = productUpdateDto.ProductDescription,
+                Price = (decimal)productUpdateDto.ProductPrice,
+                CategoryId = productUpdateDto.CategoryId.Value
+            };
+
+            _productRepoMock.Setup(repo => repo.GetProductByIdAsync(productId)).ReturnsAsync(product);
+            _categoryRepoMock.Setup(repo => repo.GetCategoryByIdAsync(productUpdateDto.CategoryId.Value)).ReturnsAsync(new Category { Id = productUpdateDto.CategoryId.Value });
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<AppException>(() => _productService.UpdateProductByIdAsync(productId, productUpdateDto));
+            Assert.Equal("Product price cannot be negative", exception.Message);
+        }
+
+        [Fact]
+        public async Task UpdateProductAsync_WithInvalidProductTitle_ShouldThrowException()
+        {
+            // Arrange
+            var productId = Guid.NewGuid();
+            var productUpdateDto = new ProductUpdateDto
+            {
+                ProductTitle = "",
+                ProductDescription = "Description 1",
+                ProductPrice = 100,
+                CategoryId = Guid.NewGuid()
+            };
+            var product = new Product
+            {
+                Id = productId,
+                Title = "Original Title",
+                Description = "Original Description",
+                Price = 50,
+                CategoryId = productUpdateDto.CategoryId.Value
+            };
+
+            _productRepoMock.Setup(repo => repo.GetProductByIdAsync(productId)).ReturnsAsync(product);
+            _categoryRepoMock.Setup(repo => repo.GetCategoryByIdAsync(productUpdateDto.CategoryId.Value)).ReturnsAsync(new Category { Id = productUpdateDto.CategoryId.Value });
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<AppException>(() => _productService.UpdateProductByIdAsync(productId, productUpdateDto));
+            Assert.Equal("Product title must be at least 3 characters long", exception.Message);
+        }
+
+        [Fact]
+        public async Task UpdateProductAsync_WithInvalidProductInventory_ShouldThrowException()
+        {
+            // Arrange
+            var productId = Guid.NewGuid();
+            var productUpdateDto = new ProductUpdateDto
+            {
+                ProductTitle = "Product 1",
+                ProductDescription = "Description 1",
+                ProductPrice = 100,
+                CategoryId = Guid.NewGuid(),
+                ProductInventory = -1
+            };
+            var product = new Product
+            {
+                Id = productId,
+                Title = productUpdateDto.ProductTitle,
+                Description = productUpdateDto.ProductDescription,
+                Price = (decimal)productUpdateDto.ProductPrice,
+                CategoryId = productUpdateDto.CategoryId.Value
+            };
+
+            _productRepoMock.Setup(repo => repo.GetProductByIdAsync(productId)).ReturnsAsync(product);
+            _categoryRepoMock.Setup(repo => repo.GetCategoryByIdAsync(productUpdateDto.CategoryId.Value)).ReturnsAsync(new Category { Id = productUpdateDto.CategoryId.Value });
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<AppException>(() => _productService.UpdateProductByIdAsync(productId, productUpdateDto));
+            Assert.Equal("Product inventory cannot be negative", exception.Message);
+        }
+        #endregion
+
+        #region DELETE
+        [Fact]
+        public async Task DeleteProductAsync_ShouldReturnTrue()
+        {
+            // Arrange
+            var productId = Guid.NewGuid();
+            var product = new Product { Id = productId, Title = "Product 1", Description = "Description 1", Price = 100, CategoryId = Guid.NewGuid() };
+
+            _productRepoMock.Setup(repo => repo.GetProductByIdAsync(productId)).ReturnsAsync(product);
+            _productRepoMock.Setup(repo => repo.DeleteProductByIdAsync(productId)).ReturnsAsync(true);
+
+            // Act
+            var result = await _productService.DeleteProductByIdAsync(productId);
+
+            // Assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public async Task DeleteProductAsync_WithNotFoundProduct_ShouldReturnFalse()
+        {
+            // Arrange
+            var productId = Guid.NewGuid();
+
+            _productRepoMock.Setup(repo => repo.GetProductByIdAsync(productId)).ReturnsAsync((Product)null);
+
+            // Act
+            var result = await _productService.DeleteProductByIdAsync(productId);
+
+            // Assert
+            Assert.False(result);
+        }
+        #endregion
     }
 }

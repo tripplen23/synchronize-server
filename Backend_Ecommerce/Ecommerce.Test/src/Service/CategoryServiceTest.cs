@@ -75,6 +75,7 @@ namespace Ecommerce.Test.src.Service
 
             // Assert
             Assert.Equal(categoryReadDtos, result);
+            
         }
 
         [Fact]

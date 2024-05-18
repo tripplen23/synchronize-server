@@ -42,14 +42,16 @@ namespace Ecommerce.Service.src.Shared
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.ProductDescription))
                 .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.ProductPrice))
                 .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryId))
+                .ForMember(dest => dest.Inventory, opt => opt.MapFrom(src => src.ProductInventory))
                  .ForMember(dest => dest.ProductImages, opt => opt.MapFrom(src => src.ProductImages));
 
             CreateMap<Product, ProductReadDto>()
                 .ForMember(dest => dest.ProductTitle, opt => opt.MapFrom(src => src.Title))
                 .ForMember(dest => dest.ProductDescription, opt => opt.MapFrom(src => src.Description))
                 .ForMember(dest => dest.ProductPrice, opt => opt.MapFrom(src => src.Price))
-                .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryId))
+                .ForMember(dest => dest.ProductInventory, opt => opt.MapFrom(src => src.Inventory))
                 .ForMember(dest => dest.ProductImages, opt => opt.MapFrom(src => src.ProductImages))
+                .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryId))
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => src.CreatedDate))
                 .ForMember(dest => dest.UpdatedDate, opt => opt.MapFrom(src => src.UpdatedDate));

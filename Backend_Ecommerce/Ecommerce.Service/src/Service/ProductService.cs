@@ -14,7 +14,6 @@ namespace Ecommerce.Service.src.Service
         private readonly IProductRepo _productRepo;
         private IMapper _mapper;
         private readonly ICategoryRepo _categoryRepo;
-        private readonly IProductImageRepo _productImageRepo;
         private readonly IProductImageService _productImageService;
         #endregion
 
@@ -24,7 +23,6 @@ namespace Ecommerce.Service.src.Service
             _productRepo = productRepo;
             _mapper = mapper;
             _categoryRepo = categoryRepo;
-            _productImageRepo = productImageRepo;
             _productImageService = productImageService;
         }
         #endregion
@@ -103,22 +101,22 @@ namespace Ecommerce.Service.src.Service
         {
             try
             {
+                var productList = await _productRepo.GetAllProductsAsync(null);
                 if (newProduct is null)
                 {
                     throw AppException.BadRequest("Product cannot be null");
                 }
 
                 // Validate image data
-                if (newProduct.ProductImages is not null)
+                if (newProduct.ProductImages != null)
                 {
                     foreach (var image in newProduct.ProductImages)
                     {
                         // Check if the image data is provided
                         if (string.IsNullOrWhiteSpace(image.ImageData))
                         {
-                            throw AppException.InvalidInputException("Image Data cannot be empty");
+                            throw AppException.InvalidInputException("Image Data cannot be empty or null");
                         }
-
                         // Check if the ImageData points to a valid image format 
                         if (!IsImageDataValid(image.ImageData))
                         {
@@ -126,14 +124,40 @@ namespace Ecommerce.Service.src.Service
                         }
                     }
                 }
+
+                if (productList.Any(p => p.Title == newProduct.ProductTitle))
+                {
+                    throw AppException.DuplicateProductTitleException("Product title is already in use, please choose another title");
+                }
+
+                if (newProduct.ProductInventory < 0)
+                {
+                    throw AppException.InvalidInputException("Product inventory cannot be negative");
+                }
+                if (newProduct.ProductPrice < 0)
+                {
+                    throw AppException.InvalidInputException("Product price cannot be negative");
+                }
+                if (newProduct.ProductTitle is null)
+                {
+                    throw AppException.InvalidInputException("Product title is required");
+                }
+                if (newProduct.ProductTitle.Length < 3)
+                {
+                    throw AppException.InvalidInputException("Product title must be at least 3 characters long");
+                }
+
                 // Check if the specified category ID exists
                 var category = await _categoryRepo.GetCategoryByIdAsync(newProduct.CategoryId);
                 if (category == null)
                 {
                     throw AppException.NotFound("Category not found");
                 }
+
                 var productEntity = _mapper.Map<Product>(newProduct);
                 productEntity.ProductImages = _mapper.Map<List<ProductImage>>(newProduct.ProductImages);
+                productEntity.Inventory = _mapper.Map<int>(newProduct.ProductInventory);
+
                 var createdProduct = await _productRepo.CreateProductAsync(productEntity);
 
                 var productReadDto = _mapper.Map<ProductReadDto>(createdProduct);
@@ -184,26 +208,65 @@ namespace Ecommerce.Service.src.Service
                 {
                     throw AppException.BadRequest("ProductId is required");
                 }
+
                 var foundProduct = await _productRepo.GetProductByIdAsync(productId);
                 if (foundProduct is null)
                 {
                     throw AppException.NotFound("Product not found");
                 }
 
-                foundProduct.Title = productUpdateDto.ProductTitle ?? foundProduct.Title;
                 foundProduct.Description = productUpdateDto.ProductDescription ?? foundProduct.Description;
-                foundProduct.CategoryId = productUpdateDto.CategoryId ?? foundProduct.CategoryId;
-                foundProduct.Price = productUpdateDto.ProductPrice ?? foundProduct.Price;
+
+                if (productUpdateDto.ProductTitle != null && productUpdateDto.ProductTitle != foundProduct.Title)
+                {
+                    // If updated title length < 3 -> throw exception
+                    if (productUpdateDto.ProductTitle.Length < 3)
+                    {
+                        throw AppException.InvalidInputException("Product title must be at least 3 characters long");
+                    }
+
+                    // If updated title is not unique -> throw exception
+                    var productList = await _productRepo.GetAllProductsAsync(null);
+                    var productTitleExists = productList.FirstOrDefault(p => p.Title == productUpdateDto.ProductTitle);
+                    if (productTitleExists != null)
+                    {
+                        throw AppException.DuplicateProductTitleException("Product title is already in use, please choose another title");
+                    }
+                    foundProduct.Title = productUpdateDto.ProductTitle;
+                }
+
+                if (productUpdateDto.CategoryId.HasValue)
+                {
+                    var categoryExists = await _categoryRepo.GetCategoryByIdAsync(productUpdateDto.CategoryId.Value);
+                    if (categoryExists == null)
+                    {
+                        throw AppException.BadRequest("Category not found");
+                    }
+                    foundProduct.CategoryId = productUpdateDto.CategoryId.Value;
+                }
 
                 if (productUpdateDto.ProductInventory.HasValue)
                 {
+                    if (productUpdateDto.ProductInventory < 0)
+                    {
+                        throw AppException.InvalidInputException("Product inventory cannot be negative");
+                    }
                     foundProduct.Inventory = productUpdateDto.ProductInventory.Value;
                 }
 
-                // Update product images
+                if (productUpdateDto.ProductPrice.HasValue)
+                {
+                    if (productUpdateDto.ProductPrice < 0)
+                    {
+                        throw AppException.InvalidInputException("Product price cannot be negative");
+                    }
+                    foundProduct.Price = productUpdateDto.ProductPrice.Value;
+                }
+
+                // Update product images (Still not working! -> Tech debt)
                 if (productUpdateDto.ImagesToUpdate != null)
                 {
-                    foundProduct.ProductImages = _mapper.Map<List<ProductImage>>(productUpdateDto.ImagesToUpdate);
+                    await _productImageService.UpdateProductImagesAsync(productId, productUpdateDto.ImagesToUpdate);
                 }
 
                 // Save changes to the database
@@ -228,11 +291,11 @@ namespace Ecommerce.Service.src.Service
         }
         #endregion
 
-        // Method to validate image URL
+        #region Helper Methods
         bool IsImageDataValid(string ImageData)
         {
             // Regular expression pattern to match common image file extensions (e.g., .jpg, .jpeg, .png, .gif)
-            string pattern = @"^(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|jpeg|gif|png)$";
+            string pattern = @"^(http(s?):)([/|.|\w|\s|-])*\.(jpg|jpeg|gif|png)(\?.*)?$";
 
             // Create a regular expression object
             Regex regex = new Regex(pattern, RegexOptions.IgnoreCase);
@@ -240,5 +303,6 @@ namespace Ecommerce.Service.src.Service
             // Check if the ImageData matches the pattern
             return regex.IsMatch(ImageData);
         }
+        #endregion
     }
 }

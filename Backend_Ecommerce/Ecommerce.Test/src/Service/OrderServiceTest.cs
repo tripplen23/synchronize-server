@@ -1,268 +1,205 @@
-/*
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Xunit;
-using Moq;
 using AutoMapper;
-using Ecommerce.Service.src.Shared;
-using Ecommerce.Core.src.RepoAbstract;
-using Ecommerce.Service.src.Service;
-using Ecommerce.Core.src.Entity;
-using Ecommerce.Service.src.DTO;
 using Ecommerce.Core.src.Common;
+using Ecommerce.Core.src.Entity;
+using Ecommerce.Core.src.RepoAbstract;
 using Ecommerce.Core.src.ValueObject;
+using Ecommerce.Service.src.DTO;
+using Ecommerce.Service.src.Service;
+using Ecommerce.Service.src.Shared;
+using Moq;
+using Xunit;
 
-
-namespace Ecommerce.Test.src.Service
+namespace Ecommerce.Tests
 {
-    public class OrderServiceTest
+    public class OrderServiceTests
     {
-        private static IMapper _mapper;
-        public OrderServiceTest()
+        private readonly Mock<IOrderRepo> _orderRepoMock;
+        private readonly Mock<IProductRepo> _productRepoMock;
+        private readonly Mock<IUserRepo> _userRepoMock;
+        private readonly IMapper _mapper;
+        private readonly OrderService _orderService;
+
+        public OrderServiceTests()
         {
-            if (_mapper == null)
-            {
-                var mappingConfig = new MapperConfiguration(m =>
-                {
-                    m.AddProfile(new MapperProfile());
-                });
-                IMapper mapper = mappingConfig.CreateMapper();
-                _mapper = mapper;
-            }
+            _orderRepoMock = new Mock<IOrderRepo>();
+            _productRepoMock = new Mock<IProductRepo>();
+            _userRepoMock = new Mock<IUserRepo>();
+
+            var config = new MapperConfiguration(cfg => cfg.AddProfile<MapperProfile>());
+            _mapper = config.CreateMapper();
+
+            _orderService = new OrderService(_orderRepoMock.Object, _mapper, _productRepoMock.Object, _userRepoMock.Object);
+        }
+
+        #region CREATE
+        [Fact]
+        public async Task CreateOrderAsync_UserNotFound_ThrowsException()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var orderCreateDto = new OrderCreateDto();
+
+            _userRepoMock.Setup(repo => repo.GetUserByIdAsync(userId)).ReturnsAsync((User?)null);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<AppException>(() => _orderService.CreateOrderAsync(userId, orderCreateDto));
+            Assert.Equal("User not found", exception.Message);
         }
 
         [Fact]
-        public void DeleteOrderByIdAsync_ValidId_ShouldReturnTrue()
+        public async Task CreateOrderAsync_ProductNotFound_ThrowsException()
         {
             // Arrange
-            var mockOrderRepo = new Mock<IOrderRepo>();
-            var mockMapper = new Mock<IMapper>();
-            var mockUserRepo = new Mock<IUserRepo>();
-            var mockProductRepo = new Mock<IProductRepo>();
-            var orderService = new OrderService(mockOrderRepo.Object, mockMapper.Object, mockProductRepo.Object, mockUserRepo.Object);
+            var userId = Guid.NewGuid();
+            var orderCreateDto = new OrderCreateDto
+            {
+                OrderProducts = new List<OrderProductCreateDto> { new OrderProductCreateDto { ProductId = Guid.NewGuid(), Quantity = 1 } }
+            };
+            var user = new User { Id = userId };
+
+            _userRepoMock.Setup(repo => repo.GetUserByIdAsync(userId)).ReturnsAsync(user);
+            _productRepoMock.Setup(repo => repo.GetProductByIdAsync(It.IsAny<Guid>())).ReturnsAsync((Product)null);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<AppException>(() => _orderService.CreateOrderAsync(userId, orderCreateDto));
+            Assert.Equal("Product not found", exception.Message);
+        }
+
+        [Fact]
+        public async Task CreateOrderAsync_ValidOrder_ReturnsOrderReadDto()
+        {
+            // Arrange
+            var userId = Guid.NewGuid();
+            var orderCreateDto = new OrderCreateDto
+            {
+                OrderProducts = new List<OrderProductCreateDto> {
+                    new OrderProductCreateDto
+                    {
+                        ProductId = Guid.NewGuid(),
+                        Quantity = 1
+                    }
+                }
+            };
+            var user = new User { Id = userId, Name = "Test User", Email = "test@example.com" };
+            var product = new Product { Id = orderCreateDto.OrderProducts.First().ProductId, Price = 100 };
+            var order = new Order { Id = Guid.NewGuid(), User = user, OrderProducts = new List<OrderProduct>(), TotalPrice = 100 };
+            var createdOrder = new Order { Id = Guid.NewGuid(), User = user, OrderProducts = order.OrderProducts, TotalPrice = 100 };
+
+            _userRepoMock.Setup(repo => repo.GetUserByIdAsync(userId)).ReturnsAsync(user);
+            _productRepoMock.Setup(repo => repo.GetProductByIdAsync(It.IsAny<Guid>())).ReturnsAsync(product);
+            _orderRepoMock.Setup(repo => repo.CreateOrderAsync(It.IsAny<Order>())).ReturnsAsync(createdOrder);
+
+            // Act
+            var result = await _orderService.CreateOrderAsync(userId, orderCreateDto);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(createdOrder.Id, result.Id);
+            Assert.Equal(100, result.TotalPrice);
+        }
+        #endregion
+
+        #region GET
+        [Fact]
+        public async Task GetOrderByIdAsync_OrderNotFound_ThrowsException()
+        {
+            // Arrange
             var orderId = Guid.NewGuid();
-            var targetOrder = new Order { Id = orderId };
+            _orderRepoMock.Setup(repo => repo.GetOrderByIdAsync(orderId)).ReturnsAsync((Order)null);
 
-            // Act
-            mockOrderRepo.Setup(orderRepo => orderRepo.GetOrderByIdAsync(orderId)).ReturnsAsync(targetOrder);
-            var result = orderService.DeleteOrderByIdAsync(orderId);
-
-            // Assert
-            Assert.True(result.Result);
-            mockOrderRepo.Verify(orderRepo => orderRepo.DeleteOrderByIdAsync(orderId), Times.Once);
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<AppException>(() => _orderService.GetOrderByIdAsync(orderId));
+            Assert.Equal("Order not found", exception.Message);
         }
 
         [Fact]
-        public void DeleteOrderByIdAsync_EmptyId_ShouldThrowsException()
+        public async Task GetOrderByIdAsync_OrderFound_ReturnsOrderReadDto()
         {
             // Arrange
-            var mockOrderRepo = new Mock<IOrderRepo>();
-            var mockMapper = new Mock<IMapper>();
-            var mockUserRepo = new Mock<IUserRepo>();
-            var mockProductRepo = new Mock<IProductRepo>();
-            var orderService = new OrderService(mockOrderRepo.Object, mockMapper.Object, mockProductRepo.Object, mockUserRepo.Object);
-            var orderId = Guid.Empty;
-
-            // Assert
-            Assert.ThrowsAsync<Exception>(() => orderService.DeleteOrderByIdAsync(orderId));
-            mockOrderRepo.Verify(orderRepo => orderRepo.DeleteOrderByIdAsync(It.IsAny<Guid>()), Times.Never());
-        }
-
-        [Fact]
-        public void DeleteOrderByIdAsync_NonExistedId_ShouldReturnFalse()
-        {
-            // Arrange
-            var mockOrderRepo = new Mock<IOrderRepo>();
-            var mockMapper = new Mock<IMapper>();
-            var mockUserRepo = new Mock<IUserRepo>();
-            var mockProductRepo = new Mock<IProductRepo>();
-            var orderService = new OrderService(mockOrderRepo.Object, mockMapper.Object, mockProductRepo.Object, mockUserRepo.Object);
             var orderId = Guid.NewGuid();
+            var userId = Guid.NewGuid();
+            var order = new Order { Id = orderId, UserId = userId, User = new User { Id = userId }, OrderProducts = new List<OrderProduct>() };
+
+            _orderRepoMock.Setup(repo => repo.GetOrderByIdAsync(orderId)).ReturnsAsync(order);
+            _userRepoMock.Setup(repo => repo.GetUserByIdAsync(userId)).ReturnsAsync(new User { Id = userId });
 
             // Act
-            mockOrderRepo.Setup(orderRepo => orderRepo.GetOrderByIdAsync(orderId)).ReturnsAsync(() => null);
-            var result = orderService.DeleteOrderByIdAsync(orderId);
+            var result = await _orderService.GetOrderByIdAsync(orderId);
 
             // Assert
-            Assert.False(result.Result);
-            mockOrderRepo.Verify(repo => repo.DeleteOrderByIdAsync(It.IsAny<Guid>()), Times.Never());
+            Assert.NotNull(result);
+            Assert.Equal(orderId, result.Id);
         }
+        #endregion
 
+        #region DELETE
         [Fact]
-        public void CreateOrderAsync_ValidInput_ShouldReturnOrderReadDto()
+        public async Task DeleteOrderByIdAsync_OrderFound_ReturnsTrue()
         {
             // Arrange
-            var mockOrderRepo = new Mock<IOrderRepo>();
-            var mockMapper = new Mock<IMapper>();
-            var mockUserRepo = new Mock<IUserRepo>();
-            var mockProductRepo = new Mock<IProductRepo>();
-            var orderService = new OrderService(mockOrderRepo.Object, _mapper, mockProductRepo.Object, mockUserRepo.Object);
-
-            var existingUser = new User
-            {
-                Id = Guid.NewGuid(),
-                Name = "Test User",
-                Email = "testuser@gmail.com",
-                Password = "123456",
-                Avatar = "sample.jpg",
-                UserRole = Core.src.ValueObject.UserRole.Customer
-            };
-
-            mockUserRepo.Setup(userRepo => userRepo.GetUserByIdAsync(existingUser.Id)).Returns(Task.FromResult(existingUser));
-
-            var orderProducts = new List<OrderProduct>()
-            {
-                new OrderProduct { ProductId = Guid.NewGuid(), Quantity = 2 },
-                new OrderProduct { ProductId = Guid.NewGuid(), Quantity = 3 }
-            };
-            var orderProductCreateDtos = new List<OrderProductCreateDto>
-            {
-                new OrderProductCreateDto {ProductId = Guid.NewGuid(), Quantity = 2 },
-                new OrderProductCreateDto { ProductId = Guid.NewGuid(), Quantity = 3 }
-            };
-            var newOrder = new OrderCreateDto { OrderProducts = orderProductCreateDtos };
-
-            mockMapper.Setup(mapper => mapper.Map<List<OrderProduct>>(It.IsAny<List<OrderProductCreateDto>>())).Returns((List<OrderProductCreateDto> input) => orderProducts);
-            mockOrderRepo.Setup(orderRepo => orderRepo.CreateOrderAsync(existingUser.Id, It.IsAny<List<OrderProduct>>())).Returns((Guid uid, List<OrderProduct> products) =>
-            {
-                var order = new Order();
-                order.OrderProducts = new List<OrderProduct>();
-                return order;
-            });
-
-            // Act
-            var result = orderService.CreateOrderAsync(existingUser.Id, newOrder);
-
-            // Assert
-            Assert.IsType<Task<OrderReadDto>>(result.Result);
-            Assert.NotNull(result.Result);
-        }
-
-        [Fact]
-        public void GetAllOrders_ShouldReturnAllOrderReadDtos()
-        {
-            // Arrange
-            var mockOrderRepo = new Mock<IOrderRepo>();
-            var mockMapper = new Mock<IMapper>();
-            var mockUserRepo = new Mock<IUserRepo>();
-            var mockProductRepo = new Mock<IProductRepo>();
-            var orderService = new OrderService(mockOrderRepo.Object, mockMapper.Object, mockProductRepo.Object, mockUserRepo.Object);
-
-            var orders = new List<Order>
-            {
-                new Order { Id = Guid.NewGuid() },
-                new Order { Id = Guid.NewGuid() }
-            };
-
-            var orderDtos = new List<OrderReadDto>
-            {
-                new OrderReadDto { Id = orders[0].Id },
-                new OrderReadDto { Id = orders[1].Id }
-            };
-
-            mockOrderRepo.Setup(orderRepo => orderRepo.GetAllOrdersAsync(It.IsAny<BaseQueryOptions>())).Returns(Task.FromResult<IEnumerable<Order>>(orders));
-            mockMapper.Setup(mapper => mapper.Map<Order, OrderReadDto>(It.IsAny<Order>())).Returns((Order order) => orderDtos.FirstOrDefault(dto => dto.Id == order.Id));
-
-            // Act
-            var result = orderService.GetAllOrdersAsync(new BaseQueryOptions());
-
-            // Assert
-            Assert.IsType<Task<IEnumerable<OrderReadDto>>>(result);
-            Assert.NotNull(result.Result);
-            Assert.Equal(orders.Count, result.Result.Count());
-        }
-
-        [Fact]
-        public void GetOrderByIdAsync_ValidId_ShouldReturnOrderReadDto()
-        {
-            // Arrange
-            var mockOrderRepo = new Mock<IOrderRepo>();
-            var mockMapper = new Mock<IMapper>();
-            var mockUserRepo = new Mock<IUserRepo>();
-            var mockProductRepo = new Mock<IProductRepo>();
-            var orderService = new OrderService(mockOrderRepo.Object, mockMapper.Object, mockProductRepo.Object, mockUserRepo.Object);
-
             var orderId = Guid.NewGuid();
             var order = new Order { Id = orderId };
-            var orderDto = new OrderReadDto { Id = orderId };
 
-            mockOrderRepo.Setup(orderRepo => orderRepo.GetOrderByIdAsync(orderId)).Returns(Task.FromResult(order));
-            mockMapper.Setup(mapper => mapper.Map<OrderReadDto>(It.IsAny<Order>())).Returns(orderDto);
+            _orderRepoMock.Setup(repo => repo.GetOrderByIdAsync(orderId)).ReturnsAsync(order);
+            _orderRepoMock.Setup(repo => repo.DeleteOrderByIdAsync(orderId)).ReturnsAsync(true);
 
             // Act
-            var result = orderService.GetOrderByIdAsync(orderId);
+            var result = await _orderService.DeleteOrderByIdAsync(orderId);
 
             // Assert
-            Assert.IsType<Task<OrderReadDto>>(result);
-            Assert.NotNull(result.Result);
-            Assert.Equal(orderId, result.Result.Id);
+            Assert.True(result);
         }
 
         [Fact]
-        public void GetOrderByIdAsync_EmptyId_ShouldThrowsException()
+        public async Task DeleteOrderByIdAsync_OrderNotFound_ReturnsFalse()
         {
-            var mockOrderRepo = new Mock<IOrderRepo>();
-            var mockMapper = new Mock<IMapper>();
-            var mockUserRepo = new Mock<IUserRepo>();
-            var mockProductRepo = new Mock<IProductRepo>();
-            var orderService = new OrderService(mockOrderRepo.Object, mockMapper.Object, mockProductRepo.Object, mockUserRepo.Object);
-
-            var orderId = Guid.Empty;
-
-            // Assert
-            Assert.ThrowsAsync<Exception>(() => orderService.GetOrderByIdAsync(orderId));
-            mockOrderRepo.Verify(orderRepo => orderRepo.GetOrderByIdAsync(It.IsAny<Guid>()), Times.Never());
-        }
-
-        [Fact]
-        public void GetOrderByIdAsync_NonExistedId_ShouldReturnNull()
-        {
-            var mockOrderRepo = new Mock<IOrderRepo>();
-            var mockMapper = new Mock<IMapper>();
-            var mockUserRepo = new Mock<IUserRepo>();
-            var mockProductRepo = new Mock<IProductRepo>();
-            var orderService = new OrderService(mockOrderRepo.Object, mockMapper.Object, mockProductRepo.Object, mockUserRepo.Object);
-
+            // Arrange
             var orderId = Guid.NewGuid();
-
-            mockOrderRepo.Setup(orderRepo => orderRepo.GetOrderByIdAsync(orderId)).Returns(Task.FromResult<Order>(null));
+            _orderRepoMock.Setup(repo => repo.GetOrderByIdAsync(orderId)).ReturnsAsync((Order)null);
 
             // Act
-            var result = orderService.GetOrderByIdAsync(orderId);
+            var result = await _orderService.DeleteOrderByIdAsync(orderId);
 
             // Assert
-            Assert.Null(result.Result);
+            Assert.False(result);
+        }
+        #endregion
+
+        #region PATCH
+        [Fact]
+        public async Task UpdateOrderStatusAsync_OrderNotFound_ThrowsException()
+        {
+            // Arrange
+            var orderId = Guid.NewGuid();
+            var orderUpdateStatusDto = new OrderUpdateStatusDto { OrderStatus = OrderStatus.Shipped };
+
+            _orderRepoMock.Setup(repo => repo.GetOrderByIdAsync(orderId)).ReturnsAsync((Order)null);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<AppException>(() => _orderService.UpdateOrderStatusAsync(orderId, orderUpdateStatusDto));
+            Assert.Equal("Order not found", exception.Message);
         }
 
         [Fact]
-        public void UpdateOrderByIdAsync_ValidInput_ShouldReturnOrderReadUpdateDto()
+        public async Task UpdateOrderStatusAsync_ValidOrder_ReturnsUpdatedOrderReadDto()
         {
-            var mockOrderRepo = new Mock<IOrderRepo>();
-            var mockMapper = new Mock<IMapper>();
-            var mockUserRepo = new Mock<IUserRepo>();
-            var mockProductRepo = new Mock<IProductRepo>();
-            var orderService = new OrderService(mockOrderRepo.Object, mockMapper.Object, mockProductRepo.Object, mockUserRepo.Object);
-
+            // Arrange
             var orderId = Guid.NewGuid();
-            var updatedOrder = new OrderUpdateDto { OrderStatus = OrderStatus.Processing };
-            var targetOrder = new Order { Status = OrderStatus.Pending, UserId = Guid.NewGuid() };
+            var orderUpdateStatusDto = new OrderUpdateStatusDto { OrderStatus = OrderStatus.Shipped };
+            var order = new Order { Id = orderId, Status = OrderStatus.Pending, UserId = Guid.NewGuid(), OrderProducts = new List<OrderProduct>() };
+            var updatedOrder = new Order { Id = orderId, Status = OrderStatus.Shipped, UserId = order.UserId, OrderProducts = order.OrderProducts };
 
-            mockOrderRepo.Setup(repo => repo.GetOrderByIdAsync(orderId)).Returns(Task.FromResult(targetOrder));
-            mockMapper.Setup(mapper => mapper.Map<OrderReadDto>(It.IsAny<Order>())).Returns(new OrderReadDto { OrderStatus = OrderStatus.Processing });
-
-            // Mock the user retrieval when calling GetById on UserRepo
-            mockUserRepo.Setup(userRepo => userRepo.GetUserByIdAsync(It.IsAny<Guid>())).Returns(Task.FromResult(new User()));
+            _orderRepoMock.Setup(repo => repo.GetOrderByIdAsync(orderId)).ReturnsAsync(order);
+            _orderRepoMock.Setup(repo => repo.UpdateOrderAsync(It.IsAny<Order>())).ReturnsAsync(updatedOrder);
+            _userRepoMock.Setup(repo => repo.GetUserByIdAsync(order.UserId)).ReturnsAsync(new User { Id = order.UserId });
 
             // Act
-            var result = orderService.UpdateOrderByIdAsync(orderId, updatedOrder);
+            var result = await _orderService.UpdateOrderStatusAsync(orderId, orderUpdateStatusDto);
 
             // Assert
-            Assert.IsType<Task<OrderReadUpdateDto>>(result);
-            Assert.NotNull(result.Result);
-            Assert.Equal(updatedOrder.OrderStatus, result.Result.OrderStatus);
+            Assert.NotNull(result);
+            Assert.Equal(OrderStatus.Shipped, result.OrderStatus);
         }
+        #endregion
     }
 }
-*/

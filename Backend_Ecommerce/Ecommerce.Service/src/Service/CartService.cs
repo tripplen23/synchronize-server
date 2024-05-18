@@ -42,6 +42,12 @@ namespace Ecommerce.Service.src.Service
             var newCartItems = new List<CartItem>();
             foreach (var cartItemDto in cartCreateDto.CartItems)
             {
+                // Quantity must be positive
+                if (cartItemDto.Quantity < 0)
+                {
+                    throw AppException.BadRequest("Quantity must be positive");
+                }
+
                 var foundProduct = await _productRepo.GetProductByIdAsync(cartItemDto.ProductId);
                 if (foundProduct is null)
                 {
