@@ -15,71 +15,98 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 using Npgsql;
+using Swashbuckle.AspNetCore.Filters;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(
+  options =>
+  {
+    options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+    {
+      Description = "Bearer token authentication",
+      Name = "Authorization",
+      In = ParameterLocation.Header,
+      Scheme = "Bearer"
+    }
+    );
+
+    // swagger would add the token to the request header of routes with [Authorize] attribute
+    options.OperationFilter<SecurityRequirementsOperationFilter>();
+  }
+);
 
 // Add CORS services
 builder.Services.AddCors(options =>
 {
   options.AddPolicy("AllowAllOrigins",
-      builder =>
-      {
-        builder
-              .AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-      });
+    builder =>
+    {
+      builder
+        .AllowAnyOrigin()
+        .AllowAnyMethod()
+        .AllowAnyHeader();
+    });
 });
 
 // add all controllers
 builder.Services.AddControllers();
 
-// adding db context into project
+// add database service
 var dataSourceBuilder = new NpgsqlDataSourceBuilder(builder.Configuration.GetConnectionString("Localhost"));
 dataSourceBuilder.MapEnum<UserRole>();
 dataSourceBuilder.MapEnum<OrderStatus>();
 var dataSource = dataSourceBuilder.Build();
 builder.Services.AddDbContext<AppDbContext>
 (
-      options =>
-      options
-        .UseNpgsql(dataSource)
-        .UseSnakeCaseNamingConvention()
-        .AddInterceptors(new TimeStampInterceptor())
-        .EnableSensitiveDataLogging() // For Development
-        .EnableDetailedErrors() // For Development
+  options =>
+  options
+    .UseNpgsql(dataSource)
+    .UseSnakeCaseNamingConvention()
+    .AddInterceptors(new TimeStampInterceptor())
+    .EnableSensitiveDataLogging() // For Development
+    .EnableDetailedErrors() // For Development
 );
 
-// service registration -> automatically create all instances of dependencies
 
+// add automapper service
+builder.Services.AddAutoMapper(typeof(MapperProfile).Assembly);
 
-builder.Services.AddAutoMapper(typeof(MapperProfile));
+// add DI services
+builder.Services
+  .AddScoped<IProductImageService, ProductImageService>()
+  .AddScoped<IUserService, UserService>()
+  .AddScoped<IProductService, ProductService>()
+  .AddScoped<ICategoryService, CategoryService>()
+  .AddScoped<IOrderService, OrderService>()
+  .AddScoped<ICartService, CartService>()
+  .AddScoped<ICartItemService, CartItemService>()
+  .AddScoped<IReviewService, ReviewService>()
+  .AddScoped<IAuthService, AuthService>()
+  .AddScoped<ITokenService, TokenService>()
+  .AddScoped<IPasswordService, PasswordService>()
+;
 
-builder.Services.AddScoped<IProductImageRepo, ProductImageRepo>();
-builder.Services.AddScoped<IProductImageService, ProductImageService>();
-builder.Services.AddScoped<IUserRepo, UserRepo>();
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IProductRepo, ProductRepo>();
-builder.Services.AddScoped<IProductService, ProductService>();
-builder.Services.AddScoped<ICategoryRepo, CategoryRepo>();
-builder.Services.AddScoped<ICategoryService, CategoryService>();
-builder.Services.AddScoped<IOrderRepo, OrderRepo>();
-builder.Services.AddScoped<IOrderService, OrderService>();
-builder.Services.AddScoped<ICartRepo, CartRepo>();
-builder.Services.AddScoped<ICartService, CartService>();
-builder.Services.AddScoped<ICartItemRepo, CartItemRepo>();
-builder.Services.AddScoped<ICartItemService, CartItemService>();
-builder.Services.AddScoped<IReviewRepo, ReviewRepo>();
-builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services
+  .AddScoped<IProductImageRepo, ProductImageRepo>()
+  .AddScoped<IUserRepo, UserRepo>()
+  .AddScoped<IProductRepo, ProductRepo>()
+  .AddScoped<ICategoryRepo, CategoryRepo>()
+  .AddScoped<IOrderRepo, OrderRepo>()
+  .AddScoped<ICartRepo, CartRepo>()
+  .AddScoped<ICartItemRepo, CartItemRepo>()
+  .AddScoped<IReviewRepo, ReviewRepo>()
+;
 
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<IPasswordService, PasswordService>();
+// add DI custom authorization services
+builder.Services.AddSingleton<IAuthorizationHandler, AdminOrOwnerAccountHandler>();
+builder.Services.AddSingleton<IAuthorizationHandler, AdminOrOwnerOrderHandler>();
+builder.Services.AddSingleton<IAuthorizationHandler, AdminOrOwnerCartHandler>();
+builder.Services.AddSingleton<IAuthorizationHandler, AdminOrOwnerReviewHandler>();
+
 builder.Services.AddScoped<ExceptionHandlerMiddleware>(serviceProvider =>
 {
   var logger = serviceProvider.GetRequiredService<ILogger<ExceptionHandlerMiddleware>>();
@@ -90,27 +117,22 @@ builder.Services.AddScoped<ExceptionHandlerMiddleware>(serviceProvider =>
   }, logger);
 }); // Catching database exception
 
-// Register authorization handler
-builder.Services.AddSingleton<IAuthorizationHandler, AdminOrOwnerAccountHandler>();
-builder.Services.AddSingleton<IAuthorizationHandler, AdminOrOwnerOrderHandler>();
-builder.Services.AddSingleton<IAuthorizationHandler, AdminOrOwnerCartHandler>();
-builder.Services.AddSingleton<IAuthorizationHandler, AdminOrOwnerReviewHandler>();
-
 // add authentication instructions
 builder.Services.AddMemoryCache();
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 .AddJwtBearer(
     options =>
     {
       options.TokenValidationParameters = new TokenValidationParameters
       {
+        ValidIssuer = builder.Configuration["Secrets:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Secrets:JwtKey"]!)),
         ValidateIssuer = true,
         ValidateAudience = false,
         ValidateLifetime = true, // make sure it's not expired
         ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["Secrets:Issuer"],
       };
     }
 );
@@ -127,24 +149,17 @@ builder.Services.AddAuthorization(
     }
 );
 
-
-
+// build app
 var app = builder.Build();
-
 
 app.UseSwagger();
 app.UseSwaggerUI();
 
-// Use CORS middleware
 app.UseCors("AllowAllOrigins");
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.UseMiddleware<ExceptionHandlerMiddleware>();
-
 app.UseHttpsRedirection();
-
 app.MapControllers();
 
 app.Run();
