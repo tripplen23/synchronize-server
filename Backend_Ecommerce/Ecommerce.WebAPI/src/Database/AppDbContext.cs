@@ -15,6 +15,7 @@ namespace Ecommerce.WebAPI.src.Database
         public DbSet<ProductImage> Images { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderProduct> OrderProducts { get; set; }
+        public DbSet<ShippingInfo> ShippingInfos { get; set; }
         public DbSet<Review> Reviews { get; set; }
         public DbSet<Cart> Carts { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
@@ -63,6 +64,11 @@ namespace Ecommerce.WebAPI.src.Database
                 .HasForeignKey(op => op.OrderId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<Order>()
+                .HasOne(o => o.ShippingInfo)
+                .WithOne(si => si.Order)
+                .HasForeignKey<ShippingInfo>(si => si.OrderId);
+
             modelBuilder.Entity<CartItem>()
                 .HasKey(op => new { op.CartId, op.ProductId });
 
@@ -101,6 +107,9 @@ namespace Ecommerce.WebAPI.src.Database
             modelBuilder.Entity<Order>()
                 .Property(o => o.CreatedDate)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
+            modelBuilder.Entity<ShippingInfo>()
+                .Property(si => si.CreatedDate)
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
             modelBuilder.Entity<Cart>()
                 .Property(c => c.CreatedDate)
                 .HasDefaultValueSql("CURRENT_TIMESTAMP");
@@ -118,7 +127,7 @@ namespace Ecommerce.WebAPI.src.Database
             modelBuilder.Entity<User>(u => u.Property(u => u.Avatar).HasColumnType("varchar(255)"));
             modelBuilder.Entity<User>(u => u.Property(u => u.Salt).HasColumnType("bytea"));
 
-            modelBuilder.Entity<Category>(c => c.Property(c => c.Name).HasColumnType("varchar"));
+            modelBuilder.Entity<Category>(c => c.Property(c => c.Name).HasColumnType("varchar(20)"));
             modelBuilder.Entity<Category>(c => c.Property(c => c.Image).HasColumnType("varchar"));
 
             modelBuilder.Entity<ProductImage>(i => i.Property(i => i.ImageData).HasColumnType("varchar"));

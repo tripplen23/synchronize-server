@@ -12,6 +12,11 @@ namespace Ecommerce.Core.src.Common
             Message = message;
         }
 
+        public AppException(string? message) : base(message)
+        {
+        }
+
+
         #region Custom Exceptions
         public static AppException BadRequest(string message = "Bad Request")
         {

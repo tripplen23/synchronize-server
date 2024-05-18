@@ -8,7 +8,9 @@ namespace Ecommerce.Core.src.Entity
         [ForeignKey("UserId")]
         public Guid UserId { get; set; }
         public User User { get; set; }
-        public OrderStatus Status { get; set; } = OrderStatus.Pending;
+        public OrderStatus Status { get; set; }
         public IEnumerable<OrderProduct> OrderProducts { get; set; }
+        public ShippingInfo ShippingInfo { get; set; }
+        public decimal TotalPrice { get; set; }
     }
 }

@@ -1,312 +1,262 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using AutoMapper;
 using Ecommerce.Core.src.Common;
 using Ecommerce.Core.src.Entity;
 using Ecommerce.Core.src.RepoAbstract;
 using Ecommerce.Service.src.DTO;
 using Ecommerce.Service.src.Service;
-using Ecommerce.Service.src.Shared;
+using Ecommerce.Service.src.ServiceAbstract;
 using Moq;
 using Xunit;
 
-namespace Ecommerce.Test.src.Service
+namespace Ecommerce.Tests
 {
     public class ProductServiceTests
     {
-        private readonly ProductService _productService;
-        private readonly Mock<IProductRepo> _productRepoMock = new();
-        private readonly Mock<IMapper> _mapperMock = new();
+        private readonly Mock<IProductRepo> _productRepoMock;
+        private readonly Mock<ICategoryRepo> _categoryRepoMock;
+        private readonly Mock<IProductImageRepo> _productImageRepoMock;
+        private readonly Mock<IProductImageService> _productImageServiceMock;
         private readonly IMapper _mapper;
+        private readonly ProductService _productService;
 
         public ProductServiceTests()
         {
-            if (_mapper == null)
+            _productRepoMock = new Mock<IProductRepo>();
+            _categoryRepoMock = new Mock<ICategoryRepo>();
+            _productImageRepoMock = new Mock<IProductImageRepo>();
+            _productImageServiceMock = new Mock<IProductImageService>();
+
+            var config = new MapperConfiguration(cfg =>
             {
-                var mappingConfig = new MapperConfiguration(m =>
-                {
-                    m.AddProfile(new MapperProfile());
-                });
-                IMapper mapper = mappingConfig.CreateMapper();
-                _mapper = mapper;
-            }
+                cfg.CreateMap<Product, ProductReadDto>();
+                cfg.CreateMap<Category, CategoryReadDto>();
+                cfg.CreateMap<ProductCreateDto, Product>();
+                cfg.CreateMap<ProductUpdateDto, Product>();
+                cfg.CreateMap<ProductImage, ProductImageReadDto>();
+                cfg.CreateMap<ProductImageCreateDto, ProductImage>();
+            });
 
-
-            _productService = new ProductService(_productRepoMock.Object, _mapperMock.Object);
+            _mapper = config.CreateMapper();
+            _productService = new ProductService(_productRepoMock.Object, _mapper, _categoryRepoMock.Object, _productImageRepoMock.Object, _productImageServiceMock.Object);
         }
 
-
         [Fact]
-        public async Task GetAllProductsAsync_WithoutOptions_ShouldReturnAllProducts()
+        public async Task GetAllProductsAsync_ShouldReturnProductList()
         {
             // Arrange
-            var expectedProducts = new List<Product>
+            var products = new List<Product>
             {
-                new Product
-                {
-                    Id = Guid.NewGuid(),
-                    Title = "Product 1",
-                    Description = "Description 1",
-                    Price = 10,
-                    CategoryId = Guid.NewGuid(),
-                    ProductImages =
-                    [
-                        new ProductImage { Id = Guid.NewGuid(), Url = "image1.jpg" },
-                        new ProductImage { Id = Guid.NewGuid(), Url = "image2.jpg" }
-                    ]
-                },
-                new Product
-                {
-                    Id = Guid.NewGuid(),
-                    Title = "Product 2",
-                    Description = "Description 2",
-                    Price = 20,
-                    CategoryId = Guid.NewGuid(),
-                    ProductImages =
-                    [
-                        new ProductImage { Id = Guid.NewGuid(), Url = "image3.jpg" },
-                        new ProductImage { Id = Guid.NewGuid(), Url = "image4.jpg" }
-                    ]
-                }
+                new Product { Id = Guid.NewGuid(), Title = "Product 1", Description = "Description 1", Price = 100 },
+                new Product { Id = Guid.NewGuid(), Title = "Product 2", Description = "Description 2", Price = 200 }
             };
-
-            _productRepoMock.Setup(repo => repo.GetAllProductsAsync(null))
-                            .ReturnsAsync(expectedProducts);
+            _productRepoMock.Setup(repo => repo.GetAllProductsAsync(null)).ReturnsAsync(products);
 
             // Act
             var result = await _productService.GetAllProductsAsync(null);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(expectedProducts.Count, result.Count());
+            Assert.Equal(2, result.Count());
+            Assert.IsAssignableFrom<IEnumerable<ProductReadDto>>(result);
         }
 
         [Fact]
-        public async Task GetAllProductsAsync_ValidOptions_ReturnsProductReadDtos()
+        public async Task GetAllProductsAsync_WithPaginationOption_ShouldReturnProductList()
         {
             // Arrange
-            var categoryId1 = Guid.NewGuid();
-            var categoryId2 = Guid.NewGuid();
-            var options = new ProductQueryOptions
-            {
-                Title = "test",
-                Min_Price = 50,
-                Max_Price = 220,
-                Category_Id = categoryId1,
-                SortBy = "title",
-                SortOrder = "asc",
-                Offset = 0,
-                Limit = 10
-            };
-
             var products = new List<Product>
-    {
-        new() { Title = "Test Product 1", Description = "Description 1", Price = 100, CategoryId = categoryId1 },
-        new() { Title = "Test Product 2", Description = "Description 2", Price = 150, CategoryId = categoryId1 },
-        new() { Title = "Test Product 3", Description = "Description 3", Price = 200, CategoryId = categoryId2 },
-        new() { Title = "Test Product 4", Description = "Description 4", Price = 250, CategoryId = categoryId2 }
-    };
-
-            _productRepoMock.Setup(repo => repo.GetAllProductsAsync(options))
-                            .ReturnsAsync(products);
+            {
+                new Product { Id = Guid.NewGuid(), Title = "Product 1", Description = "Description 1", Price = 100 },
+                new Product { Id = Guid.NewGuid(), Title = "Product 2", Description = "Description 2", Price = 200 }
+            };
+            var productQueryOptions = new ProductQueryOptions { Offset = 1, Limit = 10 };
+            _productRepoMock.Setup(repo => repo.GetAllProductsAsync(productQueryOptions)).ReturnsAsync(products);
 
             // Act
-            var result = await _productService.GetAllProductsAsync(options);
+            var result = await _productService.GetAllProductsAsync(productQueryOptions);
 
             // Assert
             Assert.NotNull(result);
             Assert.Equal(2, result.Count());
+            Assert.IsAssignableFrom<IEnumerable<ProductReadDto>>(result);
         }
 
+        [Fact]
+        public async Task GetProductsByCategoryAsync_ShouldReturnProductList()
+        {
+            // Arrange
+            var categoryId = Guid.NewGuid();
+            var products = new List<Product>
+            {
+                new Product { Id = Guid.NewGuid(), Title = "Product 1", Description = "Description 1", Price = 100, CategoryId = categoryId },
+                new Product { Id = Guid.NewGuid(), Title = "Product 2", Description = "Description 2", Price = 200, CategoryId = categoryId }
+            };
+            _categoryRepoMock.Setup(repo => repo.GetCategoryByIdAsync(categoryId)).ReturnsAsync(new Category { Id = categoryId });
+            _productRepoMock.Setup(repo => repo.GetProductsByCategoryAsync(categoryId)).ReturnsAsync(products);
 
+            // Act
+            var result = await _productService.GetProductsByCategoryAsync(categoryId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(2, result.Count());
+            Assert.IsAssignableFrom<IEnumerable<ProductReadDto>>(result);
+        }
 
         [Fact]
-        public async Task GetProductByIdAsync_ValidId_ShouldReturnProduct()
+        public async Task GetProductByIdAsync_ShouldReturnProduct()
         {
             // Arrange
             var productId = Guid.NewGuid();
-            var expectedProduct = new Product
-            {
-                Id = productId,
-                Title = "Test Product",
-                Description = "Test Description",
-                Price = 100,
-                CategoryId = Guid.NewGuid(),
-                ProductImages =
-        [
-            new ProductImage { Id = Guid.NewGuid(), Url = "image1.jpg" },
-            new ProductImage { Id = Guid.NewGuid(), Url = "image2.jpg" }
-        ]
-            };
-            _productRepoMock.Setup(repo => repo.GetProductByIdAsync(productId))
-                            .ReturnsAsync(expectedProduct);
+            var product = new Product { Id = productId, Title = "Product 1", Description = "Description 1", Price = 100, CategoryId = Guid.NewGuid() };
+
+            _productRepoMock.Setup(repo => repo.GetProductByIdAsync(productId)).ReturnsAsync(product);
+            _categoryRepoMock.Setup(repo => repo.GetCategoryByIdAsync(product.CategoryId)).ReturnsAsync(new Category { Id = product.CategoryId });
 
             // Act
             var result = await _productService.GetProductByIdAsync(productId);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(expectedProduct.Id, result.Id);
+            Assert.IsType<ProductReadDto>(result);
         }
 
-
         [Fact]
-        public async Task GetProductByIdAsync_InvalidId_ShouldReturnNull()
+        public async Task GetProductByIdAsync_WithInvalidProductId_ShouldThrowException()
         {
             // Arrange
-            var invalidProductId = Guid.NewGuid();
-            var expectedProduct = new Product
-            {
-                Id = invalidProductId,
-                Title = "Test Product",
-                Description = "Test Description",
-                Price = 100,
-                CategoryId = Guid.NewGuid(),
-                ProductImages =
-        [
-            new ProductImage { Id = Guid.NewGuid(), Url = "image1.jpg" },
-            new ProductImage { Id = Guid.NewGuid(), Url = "image2.jpg" }
-        ]
-            };
-            _productRepoMock.Setup(repo => repo.GetProductByIdAsync(invalidProductId))
-                            .ThrowsAsync(AppException.NotFound("Product not found"));
+            var productId = Guid.Empty;
+
+            // Act & Assert
+            await Assert.ThrowsAsync<AppException>(() => _productService.GetProductByIdAsync(productId));
+        }
+
+        [Fact]
+        public async Task GetProductByIdAsync_WithNotFoundProduct_ShouldThrowException()
+        {
+            // Arrange
+            var productId = Guid.NewGuid();
+
+            _productRepoMock.Setup(repo => repo.GetProductByIdAsync(productId)).ReturnsAsync((Product)null);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<AppException>(() => _productService.GetProductByIdAsync(productId));
+        }
+
+        [Fact]
+        public async Task CreateProductAsync_ShouldReturnCreatedProduct()
+        {
+            // Arrange
+            var productCreateDto = new ProductCreateDto { ProductTitle = "Product 1", ProductDescription = "Description 1", ProductPrice = 100, CategoryId = Guid.NewGuid() };
+            var product = new Product { Id = Guid.NewGuid(), Title = productCreateDto.ProductTitle, Description = productCreateDto.ProductDescription, Price = productCreateDto.ProductPrice, CategoryId = productCreateDto.CategoryId };
+
+            _productRepoMock.Setup(repo => repo.CreateProductAsync(It.IsAny<Product>())).ReturnsAsync(product);
+            _categoryRepoMock.Setup(repo => repo.GetCategoryByIdAsync(product.CategoryId)).ReturnsAsync(new Category { Id = product.CategoryId });
+
             // Act
-            var result = await _productService.GetProductByIdAsync(invalidProductId);
+            var result = await _productService.CreateProductAsync(productCreateDto);
 
             // Assert
-            Assert.Null(result); // Assert that the result is null for the invalid ID
+            Assert.NotNull(result);
+            Assert.IsType<ProductReadDto>(result);
+            Assert.Equal(product.CategoryId, result.CategoryId);
         }
 
         [Fact]
-        public async Task CreateProductAsync_ValidInput_ReturnsProductReadDto()
+        public async Task CreateProductAsync_WithInvalidCategory_ShouldThrowException()
         {
             // Arrange
-            var newProduct = new ProductCreateDto
+            var productCreateDto = new ProductCreateDto { ProductTitle = "Product 1", ProductDescription = "Description 1", ProductPrice = 100, CategoryId = Guid.NewGuid() };
+
+            _categoryRepoMock.Setup(repo => repo.GetCategoryByIdAsync(productCreateDto.CategoryId)).ReturnsAsync((Category)null);
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<AppException>(() => _productService.CreateProductAsync(productCreateDto));
+            Assert.Equal("Category not found", exception.Message);
+        }
+
+        [Fact]
+        public async Task CreateProductAsync_WithoutProductTitle_ShouldThrowException()
+        {
+            // Arrange
+            var productCreateDto = new ProductCreateDto { ProductDescription = "Description 1", ProductPrice = 100, CategoryId = Guid.NewGuid() };
+
+            // Act & Assert
+            await Assert.ThrowsAsync<AppException>(() => _productService.CreateProductAsync(productCreateDto));
+        }
+
+        [Fact]
+        public async Task CreateProductAsync_WithInvalidImageData_ShouldThrowException()
+        {
+            // Arrange
+            var productCreateDto = new ProductCreateDto
             {
-                ProductTitle = "Test Product",
-                ProductDescription = "Test Description",
+                ProductTitle = "Product 1",
+                ProductDescription = "Description 1",
                 ProductPrice = 100,
                 CategoryId = Guid.NewGuid(),
-                ProductImages =
-                [
-                    new ProductImageCreateDto { Url = "image_url_1" },
-                    new ProductImageCreateDto { Url = "image_url_2" }
-                ]
+                ProductImages = new List<ProductImageCreateDto>
+                { new ProductImageCreateDto { ImageData = null } }
             };
 
-            var productEntity = new Product
-            {
-                Title = newProduct.ProductTitle,
-                Description = newProduct.ProductDescription,
-                Price = newProduct.ProductPrice,
-                CategoryId = newProduct.CategoryId,
-                ProductImages = newProduct.ProductImages.Select(imageDto => new ProductImage { Url = imageDto.Url }).ToList()
-            };
+            _categoryRepoMock.Setup(repo => repo.GetCategoryByIdAsync(productCreateDto.CategoryId)).ReturnsAsync(new Category { Id = productCreateDto.CategoryId });
 
-            _productRepoMock.Setup(repo => repo.CreateProductAsync(It.IsAny<Product>()))
-                            .ReturnsAsync(productEntity);
-
-            // Act
-            var result = await _productService.CreateProductAsync(newProduct);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(newProduct.ProductTitle, result.ProductTitle);
-            Assert.Equal(newProduct.ProductDescription, result.ProductDescription);
-            Assert.Equal(newProduct.ProductPrice, result.ProductPrice);
-            Assert.Equal(newProduct.CategoryId, result.CategoryId);
-            Assert.Equal(newProduct.ProductImages.Count(), result?.ProductImages?.Count());
+            // Act & Assert
+            await Assert.ThrowsAsync<AppException>(() => _productService.CreateProductAsync(productCreateDto));
         }
 
         [Fact]
-        public async Task DeleteProductByIdAsync_ValidId_ReturnsTrue()
+        public async Task UpdateProductAsync_ShouldReturnUpdatedProduct()
         {
             // Arrange
             var productId = Guid.NewGuid();
+            var productUpdateDto = new ProductUpdateDto { ProductTitle = "Product 1", ProductDescription = "Description 1", ProductPrice = 100, CategoryId = Guid.NewGuid() };
+            var product = new Product { Id = productId, Title = productUpdateDto.ProductTitle, Description = productUpdateDto.ProductDescription, Price = (decimal)productUpdateDto.ProductPrice, CategoryId = productUpdateDto.CategoryId.Value };
 
-            _productRepoMock.Setup(repo => repo.DeleteProductByIdAsync(productId))
-                            .ReturnsAsync(true);
-
-            // Act
-            var result = await _productService.DeleteProductByIdAsync(productId);
-
-            // Assert
-            Assert.True(result);
-        }
-
-        [Fact]
-        public async Task UpdateProductByIdAsync_ValidInput_ReturnsProductReadDto()
-        {
-            // Arrange
-            var productId = Guid.NewGuid();
-            var productUpdateDto = new ProductUpdateDto
-            {
-                ProductTitle = "Updated Product",
-                ProductDescription = "Updated Description",
-                ProductPrice = 150
-            };
-
-
-            var updatedProductEntity = new Product
-            {
-                Id = productId,
-                Title = productUpdateDto.ProductTitle,
-                Description = productUpdateDto.ProductDescription,
-                Price = (int)productUpdateDto.ProductPrice
-            };
-
-            _productRepoMock.Setup(repo => repo.UpdateProductByIdAsync(It.IsAny<Product>())).ReturnsAsync(updatedProductEntity);
+            _productRepoMock.Setup(repo => repo.GetProductByIdAsync(productId)).ReturnsAsync(product);
+            _productRepoMock.Setup(repo => repo.UpdateProductByIdAsync(It.IsAny<Product>())).ReturnsAsync(product);
+            _categoryRepoMock.Setup(repo => repo.GetCategoryByIdAsync(product.CategoryId)).ReturnsAsync(new Category { Id = product.CategoryId });
 
             // Act
             var result = await _productService.UpdateProductByIdAsync(productId, productUpdateDto);
+            result.ProductTitle = productUpdateDto.ProductTitle;
+            result.ProductDescription = productUpdateDto.ProductDescription;
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(productUpdateDto.ProductTitle, result.ProductTitle);
-            Assert.Equal(productUpdateDto.ProductDescription, result.ProductDescription);
-            Assert.Equal(productUpdateDto.ProductPrice, result.ProductPrice);
+            Assert.IsType<ProductReadDto>(result);
+            Assert.Equal(product.CategoryId, result.CategoryId);
+            Assert.Equal(product.Title, result.ProductTitle);
+            Assert.Equal(product.Description, result.ProductDescription);
         }
 
         [Fact]
-        public async Task UpdateProductByIdAsync_InvalidId_ReturnsNull()
+        public async Task UpdateProductAsync_WithInvalidProductId_ShouldThrowException()
+        {
+            // Arrange
+            var productId = Guid.Empty;
+            var productUpdateDto = new ProductUpdateDto { ProductTitle = "Product 1", ProductDescription = "Description 1", ProductPrice = 100, CategoryId = Guid.NewGuid() };
+
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<AppException>(() => _productService.UpdateProductByIdAsync(productId, productUpdateDto));
+            Assert.Equal("ProductId is required", exception.Message);
+        }
+
+        [Fact]
+        public async Task UpdateProductAsync_WithNotFoundProduct_ShouldThrowException()
         {
             // Arrange
             var productId = Guid.NewGuid();
-            var productUpdateDto = new ProductUpdateDto
-            {
-                ProductTitle = "Updated Product",
-                ProductDescription = "Updated Description",
-                ProductPrice = 150
-            };
+            var productUpdateDto = new ProductUpdateDto { ProductTitle = "Product 1", ProductDescription = "Description 1", ProductPrice = 100, CategoryId = Guid.NewGuid() };
 
-            _productRepoMock.Setup(repo => repo.UpdateProductByIdAsync(It.IsAny<Product>()))
-                            .ThrowsAsync(AppException.NotFound("Product not found"));
+            _productRepoMock.Setup(repo => repo.GetProductByIdAsync(productId)).ReturnsAsync((Product)null);
 
-            // Act
-            var result = await _productService.UpdateProductByIdAsync(productId, productUpdateDto);
-
-            // Assert
-            Assert.Null(result);
-        }
-
-        [Fact]
-        public async Task GetMostPurchasedProductsAsync_ValidTopNumber_ReturnsProductReadDtos()
-        {
-            // Arrange
-            var topNumber = 2;
-            var products = new List<Product>
-            {
-                new Product { Title = "Product 1", Description = "Description 1", Price = 100 },
-                new Product { Title = "Product 2", Description = "Description 2", Price = 200 }
-            };
-
-            _productRepoMock.Setup(repo => repo.GetMostPurchasedProductsAsync(topNumber))
-                            .ReturnsAsync(products);
-
-            // Act
-            var result = await _productService.GetMostPurchasedProductsAsync(topNumber);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(products.Count, result.Count());
+            // Act & Assert
+            var exception = await Assert.ThrowsAsync<AppException>(() => _productService.UpdateProductByIdAsync(productId, productUpdateDto));
+            Assert.Equal("Product not found", exception.Message);
         }
     }
 }

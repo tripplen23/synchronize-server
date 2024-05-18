@@ -28,23 +28,16 @@ namespace Ecommerce.WebAPI.src.Repo
                 .ToListAsync();
         }
 
-        public async Task UpdateImageUrlAsync(Guid imageId, string newImageData)
+        public async Task UpdateImageDataAsync(Guid imageId, string newImageData)
         {
-            // Retrieve the image by its ID
-            var image = await GetImageByIdAsync(imageId);
-
-            // Check if the image is found
-            if (image != null)
+            var foundImage = await GetImageByIdAsync(imageId);
+            if (foundImage != null)
             {
-                // Update the ImageData with the new one
-                image.ImageData = newImageData;
-
-                // Save the changes to the database
+                foundImage.ImageData = newImageData;
                 await _context.SaveChangesAsync();
             }
             else
             {
-                // Handle the case where the image is not found
                 throw new ArgumentException("Image not found", nameof(imageId));
             }
         }
