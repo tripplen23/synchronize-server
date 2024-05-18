@@ -57,7 +57,7 @@ namespace Ecommerce.Service.src.Service
         bool IsImageDataValid(string ImageData)
         {
             // Regular expression pattern to match common image file extensions (e.g., .jpg, .jpeg, .png, .gif)
-            string pattern = @"^(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|jpeg|gif|png)$";
+            string pattern = @"^(http(s?):)([/|.|\w|\s|-])*\.(jpg|jpeg|gif|png)(\?.*)?$";
 
             // Create a regular expression object
             Regex regex = new Regex(pattern, RegexOptions.IgnoreCase);
@@ -65,5 +65,6 @@ namespace Ecommerce.Service.src.Service
             // Check if the ImageData matches the pattern
             return regex.IsMatch(ImageData);
         }
+
     }
 }

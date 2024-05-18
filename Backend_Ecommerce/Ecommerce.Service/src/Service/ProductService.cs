@@ -109,7 +109,7 @@ namespace Ecommerce.Service.src.Service
                 }
 
                 // Validate image data
-                if (newProduct.ProductImages is not null)
+                if (newProduct.ProductImages != null)
                 {
                     foreach (var image in newProduct.ProductImages)
                     {
@@ -118,7 +118,6 @@ namespace Ecommerce.Service.src.Service
                         {
                             throw AppException.InvalidInputException("Image Data cannot be empty");
                         }
-
                         // Check if the ImageData points to a valid image format 
                         if (!IsImageDataValid(image.ImageData))
                         {
@@ -126,14 +125,18 @@ namespace Ecommerce.Service.src.Service
                         }
                     }
                 }
+
                 // Check if the specified category ID exists
                 var category = await _categoryRepo.GetCategoryByIdAsync(newProduct.CategoryId);
                 if (category == null)
                 {
                     throw AppException.NotFound("Category not found");
                 }
+
                 var productEntity = _mapper.Map<Product>(newProduct);
                 productEntity.ProductImages = _mapper.Map<List<ProductImage>>(newProduct.ProductImages);
+                productEntity.Inventory = _mapper.Map<int>(newProduct.ProductInventory);
+
                 var createdProduct = await _productRepo.CreateProductAsync(productEntity);
 
                 var productReadDto = _mapper.Map<ProductReadDto>(createdProduct);
@@ -189,21 +192,40 @@ namespace Ecommerce.Service.src.Service
                 {
                     throw AppException.NotFound("Product not found");
                 }
-
-                foundProduct.Title = productUpdateDto.ProductTitle ?? foundProduct.Title;
                 foundProduct.Description = productUpdateDto.ProductDescription ?? foundProduct.Description;
-                foundProduct.CategoryId = productUpdateDto.CategoryId ?? foundProduct.CategoryId;
                 foundProduct.Price = productUpdateDto.ProductPrice ?? foundProduct.Price;
+
+                if (productUpdateDto.ProductTitle != null)
+                {
+                    // If updated title is not unique -> throw exception if yes, change title
+                    var productList = await _productRepo.GetAllProductsAsync(null);
+                    var productTitleExists = productList.FirstOrDefault(p => p.Title == productUpdateDto.ProductTitle);
+                    if (productTitleExists != null)
+                    {
+                        throw AppException.DuplicateProductTitleException("Product Title already exists");
+                    }
+                    foundProduct.Title = productUpdateDto.ProductTitle;
+                }
+
+                if (productUpdateDto.CategoryId.HasValue)
+                {
+                    var categoryExists = await _categoryRepo.GetCategoryByIdAsync(productUpdateDto.CategoryId.Value);
+                    if (categoryExists == null)
+                    {
+                        throw AppException.BadRequest("Invalid CategoryId");
+                    }
+                    foundProduct.CategoryId = productUpdateDto.CategoryId.Value;
+                }
 
                 if (productUpdateDto.ProductInventory.HasValue)
                 {
                     foundProduct.Inventory = productUpdateDto.ProductInventory.Value;
                 }
 
-                // Update product images
+                // Update product images (Still not working! -> Tech debt)
                 if (productUpdateDto.ImagesToUpdate != null)
                 {
-                    foundProduct.ProductImages = _mapper.Map<List<ProductImage>>(productUpdateDto.ImagesToUpdate);
+                    await _productImageService.UpdateProductImagesAsync(productId, productUpdateDto.ImagesToUpdate);
                 }
 
                 // Save changes to the database
@@ -232,7 +254,7 @@ namespace Ecommerce.Service.src.Service
         bool IsImageDataValid(string ImageData)
         {
             // Regular expression pattern to match common image file extensions (e.g., .jpg, .jpeg, .png, .gif)
-            string pattern = @"^(http(s?):)([/|.|\w|\s|-])*\.(?:jpg|jpeg|gif|png)$";
+            string pattern = @"^(http(s?):)([/|.|\w|\s|-])*\.(jpg|jpeg|gif|png)(\?.*)?$";
 
             // Create a regular expression object
             Regex regex = new Regex(pattern, RegexOptions.IgnoreCase);

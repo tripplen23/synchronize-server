@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json.Serialization;
 using Ecommerce.Core.src.Entity;
 
 namespace Ecommerce.Service.src.DTO
