@@ -42,6 +42,12 @@ namespace Ecommerce.Service.src.Service
             var newOrderProducts = new List<OrderProduct>();
             foreach (var orderProductDto in orderCreateDto.OrderProducts)
             {
+                // Quantity must be greater than 0
+                if (orderProductDto.Quantity <= 0)
+                {
+                    throw AppException.BadRequest($"Quantity of Product id -  {orderProductDto.ProductId} must be greater than 0");
+                }
+
                 var foundProduct = await _productRepo.GetProductByIdAsync(orderProductDto.ProductId);
                 if (foundProduct is null)
                 {

@@ -15,7 +15,6 @@ namespace Ecommerce.Service.src.Service
         private readonly IProductRepo _productRepo;
         private readonly IUserRepo _userRepo;
 
-
         public CartItemService(ICartRepo cartRepo, IMapper mapper, IProductRepo productRepo, IUserRepo userRepo, ICartItemRepo cartItemRepo)
         {
             _mapper = mapper;
@@ -40,6 +39,11 @@ namespace Ecommerce.Service.src.Service
 
             foreach (var updatedCartItem in cartUpdateDto.CartItems)
             {
+                // Quantity must be positive
+                if (updatedCartItem.Quantity < 0)
+                {
+                    throw AppException.BadRequest("Quantity must be positive");
+                }
                 var foundCartItem = cartItemsList.FirstOrDefault(ci => ci.ProductId == updatedCartItem.ProductId);
                 if (foundCartItem is not null)
                 {
