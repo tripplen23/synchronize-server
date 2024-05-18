@@ -31,7 +31,7 @@ Link to deployed page of the frontend:
 - [Functionalities](#functionalities)
 - [RESTful API design](#restful-api-design)
 - [CLEAN Architecture](#clean-architecture)
-- [Data flow](#data-flow-of-the-application:)
+- [Data flow](#data-flow)
 - [Extensive design](#extensive-design)
 
 ## Technologies
@@ -258,8 +258,6 @@ npm start
 
 ## Functionalities
 
-
-
 ## RESTful API design
 
 Check [/Endpoints](https://github.com/yuankeMiao/fs17_CSharp_8-BackendTeamwork/tree/main/Endpoints) folder for all api endpoints and the usage, or click the links below to check descriptions and example request & response for each endpoint.
@@ -297,7 +295,7 @@ This project follows the principles of Clean Architecture, emphasizing separatio
 - Holds unit tests for core domain and application services.
 - Ensures the reliability and correctness of the implemented functionalities.
 
-### Data flow of the application:
+### Data flow:
 
 ![image](https://github.com/tripplen23/fs17_CSharp_8-BackendTeamwork/assets/114677249/4b058b32-0b07-4c3f-b752-50e34985a57f)
 
