@@ -9,10 +9,14 @@ namespace Ecommerce.Service.src.Service
 {
     public class AuthService : IAuthService
     {
+        #region Fields
         private readonly IUserRepo _userRepo;
         private ITokenService _tokenService;
         private readonly IPasswordService _passwordService;
         private IMapper _mapper;
+        #endregion
+
+        #region constructor
         public AuthService(IUserRepo userRepo, ITokenService tokenService, IPasswordService passwordService, IMapper mapper)
         {
             _userRepo = userRepo;
@@ -20,7 +24,9 @@ namespace Ecommerce.Service.src.Service
             _passwordService = passwordService;
             _mapper = mapper;
         }
+        #endregion
 
+        #region Login
         public async Task<string> LoginAsync(UserCredential userCredential)
         {
             var foundUser = await _userRepo.GetUserByEmailAsync(userCredential.Email) ?? throw AppException.NotFound($"Email - {userCredential.Email} is not registered");
@@ -35,7 +41,9 @@ namespace Ecommerce.Service.src.Service
                 throw AppException.InvalidLoginCredentialsException("Incorrect password");
             }
         }
+        #endregion
 
+        #region Get User Profile
         public async Task<UserReadDto> GetCurrentProfileAsync(Guid id)
         {
             var foundUser = await _userRepo.GetUserByIdAsync(id);
@@ -45,10 +53,13 @@ namespace Ecommerce.Service.src.Service
             }
             throw AppException.NotFound("User not found");
         }
+        #endregion
 
+        #region Logout
         public async Task<string> LogoutAsync()
         {
             return await _tokenService.InvalidateTokenAsync();
         }
+        #endregion
     }
 }

@@ -10,11 +10,14 @@ namespace Ecommerce.Service.src.Service
 {
     public class OrderService : IOrderService
     {
+        #region Fields
         private IMapper _mapper;
         private readonly IOrderRepo _orderRepo;
         private IProductRepo _productRepo;
         private IUserRepo _userRepo;
+        #endregion
 
+        #region Constructors
         public OrderService(IOrderRepo orderRepo, IMapper mapper, IProductRepo productRepo, IUserRepo userRepo)
         {
             _mapper = mapper;
@@ -22,7 +25,9 @@ namespace Ecommerce.Service.src.Service
             _productRepo = productRepo;
             _userRepo = userRepo;
         }
+        #endregion
 
+        #region CREATE
         public async Task<OrderReadDto> CreateOrderAsync(Guid userId, OrderCreateDto orderCreateDto)
         {
             var foundUser = await _userRepo.GetUserByIdAsync(userId);
@@ -50,12 +55,15 @@ namespace Ecommerce.Service.src.Service
             }
             order.OrderProducts = newOrderProducts;
             order.Status = OrderStatus.Pending;
+            order.TotalPrice = order.OrderProducts.Sum(op => op.Product.Price * op.Quantity);
 
             var createdOrder = await _orderRepo.CreateOrderAsync(order);
             var orderReadDto = _mapper.Map<OrderReadDto>(createdOrder);
             return orderReadDto;
         }
+        #endregion
 
+        #region DELETE
         public async Task<bool> DeleteOrderByIdAsync(Guid orderId)
         {
             if (orderId == Guid.Empty)
@@ -77,7 +85,9 @@ namespace Ecommerce.Service.src.Service
                 throw;
             }
         }
+        #endregion
 
+        #region GET
         public async Task<IEnumerable<OrderReadDto>> GetAllOrdersAsync(BaseQueryOptions? options)
         {
             var orders = await _orderRepo.GetAllOrdersAsync(options);
@@ -129,7 +139,9 @@ namespace Ecommerce.Service.src.Service
                 throw;
             }
         }
+        #endregion
 
+        #region UPDATE
         public async Task<OrderReadUpdateDto> UpdateOrderStatusAsync(Guid orderId, OrderUpdateStatusDto orderUpdateStatusDto)
         {
             var foundOrder = await _orderRepo.GetOrderByIdAsync(orderId);
@@ -143,8 +155,12 @@ namespace Ecommerce.Service.src.Service
                 throw AppException.NotFound($"Order not found");
             }
 
-            // Update order status and date
+            // Update order status, shippingInfo and date
             foundOrder.Status = orderUpdateStatusDto.OrderStatus;
+            if (orderUpdateStatusDto.ShippingInfo != null)
+            {
+                foundOrder.ShippingInfo = _mapper.Map<ShippingInfo>(orderUpdateStatusDto.ShippingInfo);
+            }
             foundOrder.UpdatedDate = DateOnly.FromDateTime(DateTime.Now);
 
             // Save changes
@@ -155,10 +171,12 @@ namespace Ecommerce.Service.src.Service
 
             var orderDto = _mapper.Map<OrderReadUpdateDto>(updatedOrder);
             orderDto.User = _mapper.Map<UserReadDto>(user);
+            orderDto.ShippingInfo = _mapper.Map<ShippingInfoReadDto>(foundOrder.ShippingInfo);
             orderDto.OrderStatus = orderUpdateStatusDto.OrderStatus;
 
             return orderDto;
         }
+        #endregion
 
         #region Helper class
         private async Task<OrderReadDto> MapOrderToDTO(Order order)

@@ -54,7 +54,6 @@ namespace Ecommerce.Service.src.Shared
                 .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => src.CreatedDate))
                 .ForMember(dest => dest.UpdatedDate, opt => opt.MapFrom(src => src.UpdatedDate));
 
-
             CreateMap<ProductUpdateDto, Product>()
                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.Title, opt => opt.MapFrom(src => src.ProductTitle))
@@ -69,21 +68,27 @@ namespace Ecommerce.Service.src.Shared
                 .ForMember(dest => dest.ProductDescription, opt => opt.MapFrom(src => src.Description))
                 .ForMember(dest => dest.ProductPrice, opt => opt.MapFrom(src => src.Price))
                 .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryId))
-                .ForMember(dest => dest.ProductInventory, opt => opt.MapFrom(src => src.Inventory));
+                .ForMember(dest => dest.ProductInventory, opt => opt.MapFrom(src => src.Inventory))
+                .ForMember(dest => dest.ImagesToUpdate, opt => opt.MapFrom(src => src.ProductImages));
 
             CreateMap<Product, ProductReviewReadDto>()
                 .ForMember(dest => dest.ProductTitle, opt => opt.MapFrom(src => src.Title))
                 .ForMember(dest => dest.ProductDescription, opt => opt.MapFrom(src => src.Description))
                 .ForMember(dest => dest.ProductPrice, opt => opt.MapFrom(src => src.Price))
                 .ForMember(dest => dest.CategoryId, opt => opt.MapFrom(src => src.CategoryId));
-
             #endregion
 
 
             #region Image Mapper:
-            CreateMap<ProductImage, ProductImageReadDto>();
-            CreateMap<ProductImageCreateDto, ProductImage>();
-            CreateMap<ProductImageUpdateDto, ProductImage>();
+            CreateMap<ProductImage, ProductImageReadDto>()
+                .ForMember(dest => dest.ImageData, opt => opt.MapFrom(src => src.ImageData));
+
+            CreateMap<ProductImageCreateDto, ProductImage>()
+                .ForMember(dest => dest.ImageData, opt => opt.MapFrom(src => src.ImageData));
+
+            CreateMap<ProductImageUpdateDto, ProductImage>()
+                .ForMember(dest => dest.ImageData, opt => opt.MapFrom(src => src.ImageData))
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.ImageId));
             #endregion
 
             #region Category Mapper:
@@ -103,19 +108,28 @@ namespace Ecommerce.Service.src.Shared
 
             #region Order Mapper:
             CreateMap<Order, OrderReadDto>()
-                .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User));
+                .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User))
+                .ForMember(dest => dest.OrderProducts, opt => opt.MapFrom(src => src.OrderProducts))
+                .ForMember(dest => dest.ShippingInfo, opt => opt.MapFrom(src => src.ShippingInfo))
+                .ForMember(dest => dest.TotalPrice, opt => opt.MapFrom(src => src.TotalPrice))
+                .ForMember(dest => dest.OrderStatus, opt => opt.MapFrom(src => src.Status));
 
             CreateMap<OrderCreateDto, Order>()
-                .ForMember(dest => dest.User, opt => opt.Ignore())
-                .ForMember(dest => dest.OrderProducts, opt => opt.MapFrom(src => src.OrderProducts));
+                .ForMember(dest => dest.OrderProducts, opt => opt.MapFrom(src => src.OrderProducts))
+                .ForMember(dest => dest.ShippingInfo, opt => opt.MapFrom(src => src.ShippingInfo))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.OrderStatus));
 
-            CreateMap<OrderUpdateDto, Order>();
-            CreateMap<OrderUpdateStatusDto, Order>();
+            CreateMap<OrderUpdateStatusDto, Order>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.OrderId))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.OrderStatus))
+                .ForMember(dest => dest.ShippingInfo, opt => opt.MapFrom(src => src.ShippingInfo));
+
             CreateMap<Order, OrderReadUpdateDto>()
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
                 .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User))
                 .ForMember(dest => dest.OrderStatus, opt => opt.MapFrom(src => src.Status))
-                .ForMember(dest => dest.OrderProducts, opt => opt.MapFrom(src => src.OrderProducts));
+                .ForMember(dest => dest.OrderProducts, opt => opt.MapFrom(src => src.OrderProducts))
+                .ForMember(dest => dest.ShippingInfo, opt => opt.MapFrom(src => src.ShippingInfo));
             #endregion
 
             #region Order Products Mapper:
@@ -127,6 +141,32 @@ namespace Ecommerce.Service.src.Shared
 
             CreateMap<OrderProductCreateDto, OrderProduct>();
             CreateMap<OrderProductUpdateDto, OrderProduct>();
+            #endregion
+
+            #region Shipping Info Mapper:
+            CreateMap<ShippingInfo, ShippingInfoReadDto>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.OrderId, opt => opt.MapFrom(src => src.OrderId))
+                .ForMember(dest => dest.ShippingAddress, opt => opt.MapFrom(src => src.Address))
+                .ForMember(dest => dest.ShippingCity, opt => opt.MapFrom(src => src.City))
+                .ForMember(dest => dest.ShippingCountry, opt => opt.MapFrom(src => src.Country))
+                .ForMember(dest => dest.ShippingPostCode, opt => opt.MapFrom(src => src.PostCode))
+                .ForMember(dest => dest.ShippingPhone, opt => opt.MapFrom(src => src.PhoneNumber));
+
+            CreateMap<ShippingInfoCreateDto, ShippingInfo>()
+                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.ShippingAddress))
+                .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.ShippingCity))
+                .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.ShippingCountry))
+                .ForMember(dest => dest.PostCode, opt => opt.MapFrom(src => src.ShippingPostCode))
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.ShippingPhone));
+
+            CreateMap<ShippingInfoUpdateDto, ShippingInfo>()
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.ShippingInfoId))
+                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.ShippingAddress))
+                .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.ShippingCity))
+                .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.ShippingCountry))
+                .ForMember(dest => dest.PostCode, opt => opt.MapFrom(src => src.ShippingPostCode))
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.ShippingPhone));
             #endregion
 
             #region Cart Mapper:

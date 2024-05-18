@@ -98,6 +98,7 @@ namespace Ecommerce.WebAPI.src.Repo
             if (options is not null)
             {
                 query = query.Include(o => o.OrderProducts)
+                             .Include(o => o.ShippingInfo)
                              .OrderBy(o => o.CreatedDate)
                              .Skip(options.Offset)
                              .Take(options.Limit);
@@ -110,7 +111,8 @@ namespace Ecommerce.WebAPI.src.Repo
         public async Task<Order> GetOrderByIdAsync(Guid orderId)
         {
             var query = _orders.AsQueryable();
-            query = query.Include(o => o.OrderProducts)
+            query = query.Include(o => o.ShippingInfo)
+                         .Include(o => o.OrderProducts)
                          .ThenInclude(op => op.Product)
                          .Where(o => o.Id == orderId);
 
@@ -121,7 +123,8 @@ namespace Ecommerce.WebAPI.src.Repo
         public async Task<IEnumerable<Order>> GetOrdersByUserIdAsync(Guid userId)
         {
             var query = _orders.AsQueryable();
-            query = query.Include(o => o.OrderProducts)
+            query = query.Include(o => o.ShippingInfo)
+                         .Include(o => o.OrderProducts)
                          .ThenInclude(op => op.Product)
                          .Where(o => o.UserId == userId);
             var result = await query.ToListAsync();

@@ -10,13 +10,20 @@ namespace Ecommerce.Service.src.Service
 {
     public class CategoryService : ICategoryService
     {
+        #region Fields
         private readonly ICategoryRepo _categoryRepo;
         private readonly IMapper _mapper;
+        #endregion
+
+        #region Constructors
         public CategoryService(IMapper mapper, ICategoryRepo categoryRepo)
         {
             _categoryRepo = categoryRepo;
             _mapper = mapper;
         }
+        #endregion
+
+        #region GET
         public async Task<IEnumerable<CategoryReadDto>> GetAllCategoriesAsync()
         {
             try
@@ -49,6 +56,9 @@ namespace Ecommerce.Service.src.Service
                 throw;
             }
         }
+        #endregion
+
+        #region POST
         public async Task<CategoryReadDto> CreateCategoryAsync(CategoryCreateDto categoryCreateDto)
         {
             try
@@ -71,6 +81,9 @@ namespace Ecommerce.Service.src.Service
                 throw;
             }
         }
+        #endregion
+
+        #region PATCH
         public async Task<CategoryReadDto> UpdateCategoryByIdAsync(Guid categoryId, CategoryUpdateDto categoryUpdateDto)
         {
             try
@@ -99,6 +112,9 @@ namespace Ecommerce.Service.src.Service
                 throw;
             }
         }
+        #endregion
+
+        #region DELETE
         public async Task<bool> DeleteCategoryByIdAsync(Guid categoryId)
         {
             try
@@ -114,5 +130,6 @@ namespace Ecommerce.Service.src.Service
                 throw;
             }
         }
+        #endregion
     }
 }
