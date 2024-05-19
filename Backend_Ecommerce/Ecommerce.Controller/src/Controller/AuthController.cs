@@ -27,6 +27,7 @@ namespace Ecommerce.Controller.src.Controller
         #endregion
 
         #region POST http://localhost:5227/api/v1/auth/login
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<ActionResult<string>> LoginAsync([FromBody] UserCredential userCredential)
         {
@@ -40,7 +41,6 @@ namespace Ecommerce.Controller.src.Controller
         #endregion
 
         #region GET http://localhost:5227/api/v1/auth/profile
-        // logged in user or Admin
         [Authorize]
         [HttpGet("profile")]
         public async Task<ActionResult<UserReadDto>> GetCurrnentProfileAsync()

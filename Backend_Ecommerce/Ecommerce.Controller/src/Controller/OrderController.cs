@@ -37,6 +37,7 @@ namespace Ecommerce.Controller.src.Controller
         #endregion
 
         #region GET http://localhost:5227/api/v1/orders/user/:userId
+        [AllowAnonymous]
         [HttpGet("user/{userId:guid}")]
         public async Task<ActionResult<OrderReadDto>> GetOrdersByUserIdAsync([FromRoute] Guid userId)
         {
@@ -45,12 +46,13 @@ namespace Ecommerce.Controller.src.Controller
             {
                 return NotFound();
             }
-            return Ok(await _orderService.GetOrdersByUserIdAsync(userId)); // Will be modified later
+            var result = await _orderService.GetOrdersByUserIdAsync(userId);
+            return Ok(result);
         }
         #endregion
 
         #region GET http://localhost:5227/api/v1/orders/:orderId
-        [Authorize(Roles = "Admin")]
+        [AllowAnonymous]
         [HttpGet("{orderId}")]
         public async Task<ActionResult<OrderReadDto>> GetOrderByIdAsync([FromRoute] Guid orderId)
         {
@@ -82,18 +84,15 @@ namespace Ecommerce.Controller.src.Controller
         #endregion
 
         #region DELETE http://localhost:5227/api/v1/orders/:orderId
-        [Authorize]
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{orderId}")]
         public async Task<ActionResult<bool>> DeleteAnOrderByIdAsync([FromRoute] Guid orderId)
         {
-            OrderReadDto? foundOrder = await _orderService.GetOrderByIdAsync(orderId);
-            var authResult = await _authorizationService.AuthorizeAsync(HttpContext.User, foundOrder, "AdminOrOwnerOrder");
-
-            if (!authResult.Succeeded)
+            var foundOrder = await _orderService.GetOrderByIdAsync(orderId);
+            if (foundOrder is null)
             {
-                return Forbid();
+                return NotFound("Order not found");
             }
-
             var result = await _orderService.DeleteOrderByIdAsync(orderId);
 
             return Ok(result);

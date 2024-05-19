@@ -22,6 +22,7 @@ namespace Ecommerce.Controller.src.Controller
         #endregion
 
         #region GET http://localhost:5227/api/v1/products
+        [AllowAnonymous]
         [HttpGet("")]
         public async Task<ActionResult<IEnumerable<ProductReadDto>>> GetAllProductsAsync([FromQuery] ProductQueryOptions? options)
         {
@@ -31,6 +32,7 @@ namespace Ecommerce.Controller.src.Controller
         #endregion
 
         #region GET http://localhost:5227/api/v1/products/category/{categoryId}
+        [AllowAnonymous]
         [HttpGet("category/{categoryId:guid}")]
         public async Task<ActionResult<IEnumerable<ProductReadDto>>> GetProductsByCategoryAsync([FromRoute] Guid categoryId)
         {

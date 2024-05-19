@@ -48,6 +48,7 @@ namespace Ecommerce.Controller.src.Controller
         #endregion
 
         #region POST http://localhost:5227/api/v1/users
+        [AllowAnonymous]
         [HttpPost()]
         public async Task<ActionResult<UserReadDto>> CreateUserAsync([FromBody] UserCreateDto userCreateDto)
         {
@@ -57,7 +58,6 @@ namespace Ecommerce.Controller.src.Controller
         #endregion
 
         #region PUT http://localhost:5227/api/v1/users/{userId}
-        // Admin and owner
         [Authorize]
         [HttpPut("{userId}")]
         public async Task<ActionResult<UserReadDto>> UpdateUserByIdAsync([FromRoute] Guid userId, [FromBody] UserUpdateDto userUpdateDto)
@@ -79,7 +79,7 @@ namespace Ecommerce.Controller.src.Controller
 
         #region DELETE http://localhost:5227/api/v1/users/{userId}
         [Authorize(Roles = "Admin")]
-        [HttpDelete("{userId}")] // endpoint: /users/:user_id
+        [HttpDelete("{userId}")]
         public async Task<IActionResult> DeleteUserByIdAsync([FromRoute] Guid userId)
         {
             var isDeleted = await _userService.DeleteUserByIdAsync(userId);

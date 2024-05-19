@@ -21,6 +21,7 @@ namespace Ecommerce.Controller.src.Controller
         #endregion
 
         #region GET http://localhost:5227/api/v1/categories
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CategoryReadDto>>> GetAllCategoriesAsync()
         {
@@ -30,6 +31,7 @@ namespace Ecommerce.Controller.src.Controller
         #endregion
 
         #region GET http://localhost:5227/api/v1/categories/:category_id
+        [AllowAnonymous]
         [HttpGet("{categoryId:guid}")]
         public async Task<ActionResult<CategoryReadDto>> GetCategoryByIdAsync([FromRoute] Guid categoryId)
         {
@@ -48,9 +50,9 @@ namespace Ecommerce.Controller.src.Controller
         }
         #endregion
 
-        #region PUT http://localhost:5227/api/v1/categories/:category_id
+        #region PATCH http://localhost:5227/api/v1/categories/:category_id
         [Authorize(Roles = "Admin")]
-        [HttpPut("{categoryId}")]
+        [HttpPatch("{categoryId}")]
         public async Task<ActionResult<CategoryReadDto>> UpdateCategoryByIdAsync([FromRoute] Guid categoryId, [FromBody] CategoryUpdateDto categoryUpdateDto)
         {
             var foundCategory = await GetCategoryByIdAsync(categoryId);

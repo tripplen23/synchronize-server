@@ -258,6 +258,55 @@ npm start
 
 ## Functionalities
 
+1. Allow Anonymous:
+
+- Login -> POST http://localhost:5227/api/v1/auth/login
+- Get All Categories -> `GET http://localhost:5227/api/v1/categories`
+- Get Category By ID -> `GET http://localhost:5227/api/v1/categories/:category_id`
+- Get Order By User ID -> `GET http://localhost:5227/api/v1/orders/user/:userId (Should be changed into Admin and Owner later!)`
+- Get Order by ID -> `GET http://localhost:5227/api/v1/orders/:orderId (Should be changed into Admin and Owner later!)`
+- Get All Products -> `GET http://localhost:5227/api/v1/products`
+- Get Products By Category -> `GET http://localhost:5227/api/v1/products/category/:categoryId`
+- Get Product By Id -> `GET http://localhost:5227/api/v1/products/:productId`
+- Get All Reviews -> `GET http://localhost:5227/api/v1/reviews`
+- Get All Reviews Of A Product -> `GET http://localhost:5227/api/v1/reviews/product/:productId`
+- Get Review By ID -> `GET http://localhost:5227/api/v1/reviews/:reviewId`
+- Create An User (Register) -> `POST http://localhost:5227/api/v1/users`
+
+2. Owner only (Logged-in Users):
+
+- Logout -> `POST http://localhost:5227/api/v1/auth/logout`
+- Create An Order -> `POST http://localhost:5227/api/v1/orders`
+- Get Review By ID -> `GET http://localhost:5227/api/v1/reviews/:reviewId`
+- Create A Review -> `POST http://localhost:5227/api/v1/reviews`
+- Update An User Profile -> `PUT http://localhost:5227/api/v1/users/:userId`
+
+3. Admin and Owner:
+
+- Get Current User Profile -> `GET http://localhost:5227/api/v1/auth/profile`
+- Get Cart By ID -> `GET http://localhost:5227/api/v1/carts/:cartId`
+- Delete Cart By ID -> `DELETE http://localhost:5227/api/v1/carts/:cartId`
+- Update Cart Item's Quantity -> `PATCH http://localhost:5227/api/v1/carts/:cartId`
+- Update A Review By ID -> `PATCH http://localhost:5227/api/v1/reviews/:reviewId`
+- Delete A Review By ID -> `DELETE http://localhost:5227/api/v1/reviews/:reviewId`
+
+4. Admin Only:
+
+- Get All Carts -> `GET http://localhost:5227/api/v1/carts`
+- Create A New Category -> `POST http://localhost:5227/api/v1/categories`
+- Update A Category By ID -> `PATCH http://localhost:5227/api/v1/categories/:category_id`
+- Delele A Category By ID -> `DELETE http://localhost:5227/api/v1/categories/:category_id`
+- Get All Orders -> `GET http://localhost:5227/api/v1/orders`
+- Update Order Status or Shipping Information -> `PATCH http://localhost:5227/api/v1/orders/:orderId`
+- Delete An Order -> `DELETE http://localhost:5227/api/v1/orders/:orderId`
+- Create A Product -> `POST http://localhost:5227/api/v1/products`
+- Update A Product -> `PATCH http://localhost:5227/api/v1/products/:productId`
+- Delete A Product -> `DELETE http://localhost:5227/api/v1/products/:productId`
+- Get All Users -> `GET http://localhost:5227/api/v1/users`
+- Get User By ID -> `GET http://localhost:5227/api/v1/users/{userId} (Should be changed into Admin and Owner later!)`
+- Delete An User By ID -> `DELETE http://localhost:5227/api/v1/users/{userId} (Should be changed into Admin and Owner later!)` 
+
+
 ## RESTful API design
 
 Check [/Endpoints](https://github.com/yuankeMiao/fs17_CSharp_8-BackendTeamwork/tree/main/Endpoints) folder for all api endpoints and the usage, or click the links below to check descriptions and example request & response for each endpoint.

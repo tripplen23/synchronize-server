@@ -35,6 +35,7 @@ namespace Ecommerce.Controller.src.Controller
         #endregion
 
         #region GET http://localhost:5227/api/v1/reviews/product/{productId}
+        [AllowAnonymous]
         [HttpGet("product/{productId}")]
         public async Task<ActionResult<IEnumerable<ReviewReadDto>>> GetAllReviewsOfProductAsync([FromQuery] Guid productId)
         {
@@ -44,7 +45,6 @@ namespace Ecommerce.Controller.src.Controller
         #endregion
 
         #region GET http://localhost:5227/api/v1/reviews/{reviewId}
-        // Customer auth = CreateAReview's Customer auth or Admin
         [Authorize]
         [HttpGet("{reviewId}")]
         public async Task<ActionResult<ReviewReadDto>> GetReviewByIdAsync([FromRoute] Guid reviewId)
@@ -77,7 +77,6 @@ namespace Ecommerce.Controller.src.Controller
         #endregion
 
         #region PATCH http://localhost:5227/api/v1/reviews/{reviewId}
-        // Customer auth = CreateAReview's Customer auth or Admin
         [Authorize]
         [HttpPatch("{reviewId}")]
         public async Task<ActionResult<ReviewReadDto>> UpdateReviewByIdAsync([FromRoute] Guid reviewId, [FromBody] ReviewUpdateDto reviewUpdateDto)
@@ -96,7 +95,6 @@ namespace Ecommerce.Controller.src.Controller
         #endregion
 
         #region DELETE http://localhost:5227/api/v1/reviews/{reviewId}
-        // Customer auth = CreateAReview's Customer auth or Admin
         [Authorize]
         [HttpDelete("{reviewId}")]
         public async Task<ActionResult<bool>> DeleteReviewByIdAsync([FromRoute] Guid reviewId)
