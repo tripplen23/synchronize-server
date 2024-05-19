@@ -263,8 +263,8 @@ npm start
 - Login -> `POST http://localhost:5227/api/v1/auth/login`
 - Get All Categories -> `GET http://localhost:5227/api/v1/categories`
 - Get Category By ID -> `GET http://localhost:5227/api/v1/categories/:category_id`
-- Get Order By User ID -> `GET http://localhost:5227/api/v1/orders/user/:userId (Should be changed into Admin and Owner later!)`
-- Get Order by ID -> `GET http://localhost:5227/api/v1/orders/:orderId (Should be changed into Admin and Owner later!)`
+- Get Order By User ID -> `GET http://localhost:5227/api/v1/orders/user/:userId` (Should be changed into Admin and Owner later!)
+- Get Order by ID -> `GET http://localhost:5227/api/v1/orders/:orderId` (Should be changed into Admin and Owner later!)
 - Get All Products -> `GET http://localhost:5227/api/v1/products`
 - Get Products By Category -> `GET http://localhost:5227/api/v1/products/category/:categoryId`
 - Get Product By Id -> `GET http://localhost:5227/api/v1/products/:productId`
@@ -303,8 +303,8 @@ npm start
 - Update A Product -> `PATCH http://localhost:5227/api/v1/products/:productId`
 - Delete A Product -> `DELETE http://localhost:5227/api/v1/products/:productId`
 - Get All Users -> `GET http://localhost:5227/api/v1/users`
-- Get User By ID -> `GET http://localhost:5227/api/v1/users/{userId} (Should be changed into Admin and Owner later!)`
-- Delete An User By ID -> `DELETE http://localhost:5227/api/v1/users/{userId} (Should be changed into Admin and Owner later!)`
+- Get User By ID -> `GET http://localhost:5227/api/v1/users/{userId}` (Should be changed into Admin and Owner later!)
+- Delete An User By ID -> `DELETE http://localhost:5227/api/v1/users/{userId}` (Should be changed into Admin and Owner later!)
 
 ## RESTful API design
 
