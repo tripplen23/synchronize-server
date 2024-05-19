@@ -260,7 +260,7 @@ npm start
 
 1. Allow Anonymous:
 
-- Login -> POST http://localhost:5227/api/v1/auth/login
+- Login -> `POST http://localhost:5227/api/v1/auth/login`
 - Get All Categories -> `GET http://localhost:5227/api/v1/categories`
 - Get Category By ID -> `GET http://localhost:5227/api/v1/categories/:category_id`
 - Get Order By User ID -> `GET http://localhost:5227/api/v1/orders/user/:userId (Should be changed into Admin and Owner later!)`
@@ -304,8 +304,7 @@ npm start
 - Delete A Product -> `DELETE http://localhost:5227/api/v1/products/:productId`
 - Get All Users -> `GET http://localhost:5227/api/v1/users`
 - Get User By ID -> `GET http://localhost:5227/api/v1/users/{userId} (Should be changed into Admin and Owner later!)`
-- Delete An User By ID -> `DELETE http://localhost:5227/api/v1/users/{userId} (Should be changed into Admin and Owner later!)` 
-
+- Delete An User By ID -> `DELETE http://localhost:5227/api/v1/users/{userId} (Should be changed into Admin and Owner later!)`
 
 ## RESTful API design
 
