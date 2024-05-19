@@ -254,7 +254,8 @@ npm start
 
 ## Relational database design
 
-![1716080870148](image/README/erd.png)
+![erd](image/README/erd.png)
+*Click to see clearer*
 
 ## Functionalities
 
