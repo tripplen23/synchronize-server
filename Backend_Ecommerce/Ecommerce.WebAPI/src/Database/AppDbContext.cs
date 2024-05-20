@@ -136,10 +136,10 @@ namespace Ecommerce.WebAPI.src.Database
             modelBuilder.Entity<Product>(product =>
             {
                 // Configure the foreign key relationship
-                product.HasOne<Category>()
-                    .WithMany()
+                product.HasOne(p => p.Category)
+                    .WithMany(c => c.Products) // Assuming Category has a Products collection
                     .HasForeignKey(p => p.CategoryId)
-                    .OnDelete(DeleteBehavior.SetNull);
+                    .OnDelete(DeleteBehavior.Cascade);
                 product.HasMany(p => p.ProductImages)
                     .WithOne()
                     .OnDelete(DeleteBehavior.Cascade);

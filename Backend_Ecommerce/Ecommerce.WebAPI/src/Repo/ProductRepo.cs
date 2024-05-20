@@ -27,7 +27,7 @@ namespace Ecommerce.WebAPI.src.Repo
             {
                 throw AppException.DuplicateEmailException("Product Title already exist");
             }
-            
+
             await _products.AddAsync(newProduct);
             await _context.SaveChangesAsync();
             return newProduct;
@@ -96,8 +96,6 @@ namespace Ecommerce.WebAPI.src.Repo
                             break;
                     }
                 }
-                // Pagination
-                query = query.Skip(options.Offset).Take(options.Limit);
             }
 
             // Execute the query
@@ -109,18 +107,21 @@ namespace Ecommerce.WebAPI.src.Repo
         {
             var products = await _products
             .Include(p => p.ProductImages)
+            .Include(p => p.Category)
             .Where(p => p.CategoryId == categoryId).ToListAsync();
             return products;
         }
 
         public async Task<Product> GetProductByIdAsync(Guid productId)
         {
-            var foundproduct = await _context.Products.FindAsync(productId);
-            if (foundproduct is null)
+            var product = await _products
+            .Include(p => p.ProductImages)
+            .FirstOrDefaultAsync(p => p.Id == productId);
+            if (product is null)
             {
-                throw AppException.NotFound("Product not found, Product ID: " + productId);
+                throw AppException.NotFound("Product not found");
             }
-            return foundproduct;
+            return product;
         }
 
         public async Task<Product> UpdateProductByIdAsync(Product updatedProduct)

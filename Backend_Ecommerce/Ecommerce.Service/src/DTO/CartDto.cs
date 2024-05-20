@@ -4,7 +4,6 @@ namespace Ecommerce.Service.src.DTO
 {
     public class CartReadDto : BaseEntity
     {
-
         public Guid UserId { get; set; }
         public UserReadDto User { get; set; }
         public IEnumerable<CartItemReadDto> CartItems { get; set; }

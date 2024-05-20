@@ -33,5 +33,6 @@ namespace Ecommerce.Service.src.DTO
         public OrderStatus OrderStatus { get; set; }
         public IEnumerable<OrderProductReadDto> OrderProducts { get; set; }
         public ShippingInfoReadDto ShippingInfo { get; set; }
+        public decimal TotalPrice { get; set; }
     }
 }

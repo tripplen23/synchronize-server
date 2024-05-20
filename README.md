@@ -249,6 +249,8 @@ npm start
 │   │           ├── ProductRepo.cs
 │   │           ├── ReviewRepo.cs
 │   │           └── UserRepo.cs
+├── image
+├──.gitignore
 └── README.md
 ```
 
