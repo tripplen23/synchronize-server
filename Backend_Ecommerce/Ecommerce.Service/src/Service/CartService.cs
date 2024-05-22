@@ -34,9 +34,11 @@ namespace Ecommerce.Service.src.Service
             var existingCart = await _cartRepo.GetCartByUserIdAsync(userId);
             if (existingCart != null)
             {
-                throw AppException.BadRequest("This user is already have a cart!");
+                // Update existing cart
+                return await UpdateCartItems(existingCart.Id, cartCreateDto.CartItems);
             }
 
+            // Create new cart
             var cart = _mapper.Map<Cart>(cartCreateDto);
             cart.User = foundUser;
             var newCartItems = new List<CartItem>();
@@ -70,6 +72,51 @@ namespace Ecommerce.Service.src.Service
             cart.CartItems = newCartItems;
             var createdCart = await _cartRepo.CreateCartAsync(cart);
             var cartReadDto = _mapper.Map<CartReadDto>(createdCart);
+            return cartReadDto;
+        }
+
+        private async Task<CartReadDto> UpdateCartItems(Guid cartId, IEnumerable<CartItemCreateDto> cartItemsDto)
+        {
+            var foundCart = await _cartRepo.GetCartByIdAsync(cartId);
+            if (foundCart == null)
+            {
+                throw AppException.NotFound("Cart not found");
+            }
+
+            var cartItemsList = foundCart.CartItems.ToList();
+            foreach (var cartItemDto in cartItemsDto)
+            {
+                var existingCartItem = cartItemsList.FirstOrDefault(ci => ci.ProductId == cartItemDto.ProductId);
+                if (existingCartItem != null)
+                {
+                    existingCartItem.Quantity += cartItemDto.Quantity;
+                }
+                else
+                {
+                    var foundProduct = await _productRepo.GetProductByIdAsync(cartItemDto.ProductId);
+                    if (foundProduct == null)
+                    {
+                        throw AppException.NotFound("Product not found");
+                    }
+                    cartItemsList.Add(new CartItem
+                    {
+                        CartId = cartId,
+                        ProductId = cartItemDto.ProductId,
+                        Quantity = cartItemDto.Quantity
+                    });
+                }
+            }
+            // Remove cart items with quantity 0
+            var itemsToRemove = cartItemsList.Where(ci => ci.Quantity == 0).ToList();
+            foreach (var itemToRemove in itemsToRemove)
+            {
+                await _cartItemRepo.DeleteCartItemByIdAsync(itemToRemove.Id);
+                cartItemsList.Remove(itemToRemove);
+            }
+
+            foundCart.CartItems = cartItemsList;
+            var updatedCart = await _cartRepo.UpdateCartAsync(foundCart);
+            var cartReadDto = _mapper.Map<CartReadDto>(updatedCart);
             return cartReadDto;
         }
 
