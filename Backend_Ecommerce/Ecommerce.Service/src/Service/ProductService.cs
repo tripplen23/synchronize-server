@@ -107,24 +107,6 @@ namespace Ecommerce.Service.src.Service
                     throw AppException.BadRequest("Product cannot be null");
                 }
 
-                // Validate image data
-                if (newProduct.ProductImages != null)
-                {
-                    foreach (var image in newProduct.ProductImages)
-                    {
-                        // Check if the image data is provided
-                        if (string.IsNullOrWhiteSpace(image.ImageData))
-                        {
-                            throw AppException.InvalidInputException("Image Data cannot be empty or null");
-                        }
-                        // Check if the ImageData points to a valid image format 
-                        if (!IsImageDataValid(image.ImageData))
-                        {
-                            throw AppException.InvalidInputException("Invalid image format");
-                        }
-                    }
-                }
-
                 if (productList.Any(p => p.Title == newProduct.ProductTitle))
                 {
                     throw AppException.DuplicateProductTitleException("Product title is already in use, please choose another title");
@@ -263,11 +245,13 @@ namespace Ecommerce.Service.src.Service
                     foundProduct.Price = productUpdateDto.ProductPrice.Value;
                 }
 
+                /*
                 // Update product images (Still not working! -> Tech debt)
                 if (productUpdateDto.ImagesToUpdate != null)
                 {
                     await _productImageService.UpdateProductImagesAsync(productId, productUpdateDto.ImagesToUpdate);
                 }
+                */
 
                 // Save changes to the database
                 var updatedProduct = await _productRepo.UpdateProductByIdAsync(foundProduct);

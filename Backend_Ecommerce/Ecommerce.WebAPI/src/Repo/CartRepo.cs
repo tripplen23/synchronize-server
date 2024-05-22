@@ -46,7 +46,11 @@ namespace Ecommerce.WebAPI.src.Repo
             var query = _context.Carts.AsQueryable();
             if (options != null)
             {
-                query = query.Include(c => c.User).Include(c => c.CartItems).Skip(options.Offset).Take(options.Limit);
+                query = query.Include(c => c.User)
+                             .Include(c => c.CartItems)
+                             .ThenInclude(ci => ci.Product.ProductImages)
+                             .Skip(options.Offset)
+                             .Take(options.Limit);
             }
             return await query.ToListAsync();
         }
@@ -56,6 +60,7 @@ namespace Ecommerce.WebAPI.src.Repo
             var query = _carts.AsQueryable();
             query = query.Include(c => c.CartItems)
                          .ThenInclude(ci => ci.Product)
+                         .ThenInclude(p => p.ProductImages)
                          .Where(c => c.Id == cartId);
 
             var cart = await query.FirstOrDefaultAsync();

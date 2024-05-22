@@ -2,6 +2,7 @@ using AutoMapper;
 using Ecommerce.Core.src.Common;
 using Ecommerce.Core.src.Entity;
 using Ecommerce.Core.src.RepoAbstract;
+using Ecommerce.Core.src.ValueObject;
 using Ecommerce.Service.src.DTO;
 using Ecommerce.Service.src.ServiceAbstract;
 
@@ -27,14 +28,15 @@ namespace Ecommerce.Service.src.Service
         #endregion
 
         #region Login
-        public async Task<string> LoginAsync(UserCredential userCredential)
+        public async Task<(string token, UserRole userRole)> LoginAsync(UserCredential userCredential)
         {
             var foundUser = await _userRepo.GetUserByEmailAsync(userCredential.Email) ?? throw AppException.NotFound($"Email - {userCredential.Email} is not registered");
 
             var isMatch = _passwordService.VerifyPassword(userCredential.Password, foundUser.Password, foundUser.Salt);
             if (isMatch)
             {
-                return _tokenService.GetToken(foundUser);
+                var token = _tokenService.GetToken(foundUser);
+                return (token, foundUser.UserRole);
             }
             else
             {

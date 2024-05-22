@@ -29,14 +29,10 @@ namespace Ecommerce.Controller.src.Controller
         #region POST http://localhost:5227/api/v1/auth/login
         [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<ActionResult<string>> LoginAsync([FromBody] UserCredential userCredential)
+        public async Task<ActionResult<object>> LoginAsync([FromBody] UserCredential userCredential)
         {
-            var token = await _authService.LoginAsync(userCredential);
-            if (token == null)
-            {
-                return BadRequest("Invalid login credentials");
-            }
-            return Ok(token);
+            var (token, userRole) = await _authService.LoginAsync(userCredential);
+            return Ok(new { token, userRole });
         }
         #endregion
 

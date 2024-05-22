@@ -188,12 +188,12 @@ namespace Ecommerce.Service.src.Shared
             #region Cart Items Mapper:
             CreateMap<CartItemReadDto, CartItem>()
                 .ForMember(dest => dest.CartId, opt => opt.MapFrom(src => src.CartId))
-                .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.ProductId))
+                .ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.Product))
                 .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity));
 
             CreateMap<CartItem, CartItemReadDto>()
                 .ForMember(dest => dest.CartId, opt => opt.MapFrom(src => src.CartId))
-                .ForMember(dest => dest.ProductId, opt => opt.MapFrom(src => src.ProductId))
+                .ForMember(dest => dest.Product, opt => opt.MapFrom(src => src.Product))
                 .ForMember(dest => dest.Quantity, opt => opt.MapFrom(src => src.Quantity));
 
             CreateMap<CartItemCreateDto, CartItem>()
