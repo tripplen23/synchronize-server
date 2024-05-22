@@ -210,10 +210,8 @@ namespace Ecommerce.Service.src.Service
                 {
                     var product = await _productRepo.GetProductByIdAsync(orderProduct.ProductId);
                     var productDTO = _mapper.Map<ProductReadDto>(product);
-
                     var orderProductDto = _mapper.Map<OrderProductReadDto>(orderProduct);
-                    orderProductDto.ProductTitle = productDTO.ProductTitle;
-                    orderProductDto.ProductPrice = productDTO.ProductPrice;
+                    orderProductDto.Product = productDTO;
 
                     orderProductDtos.Add(orderProductDto);
                 }
