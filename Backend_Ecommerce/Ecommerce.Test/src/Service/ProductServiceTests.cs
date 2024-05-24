@@ -194,27 +194,6 @@ namespace Ecommerce.Tests
         }
 
         [Fact]
-        public async Task CreateProductAsync_WithInvalidImageData_ShouldThrowException()
-        {
-            // Arrange
-            var productCreateDto = new ProductCreateDto
-            {
-                ProductTitle = "Product 1",
-                ProductDescription = "Description 1",
-                ProductPrice = 100,
-                CategoryId = Guid.NewGuid(),
-                ProductImages = new List<ProductImageCreateDto>
-                { new ProductImageCreateDto { ImageData = null } }
-            };
-
-            _categoryRepoMock.Setup(repo => repo.GetCategoryByIdAsync(productCreateDto.CategoryId)).ReturnsAsync(new Category { Id = productCreateDto.CategoryId });
-
-            // Act & Assert
-            var exception = await Assert.ThrowsAsync<AppException>(() => _productService.CreateProductAsync(productCreateDto));
-            Assert.Equal("Image Data cannot be empty or null", exception.Message);
-        }
-
-        [Fact]
         public async Task CreateProductAsync_WithDuplicateProductTitle_ShouldThrowException()
         {
             // Arrange

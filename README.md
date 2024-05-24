@@ -19,8 +19,11 @@ The project was done as a final project at [Integrify](https://www.integrify.io/
 
 This repository contains the backend server for an E-Commerce Platform. The project implements RESTful API endpoints for managing users, products, orders, carts, categories, and reviews.
 
-**NOTE**: The frontend repository can be found [here]()
-Link to deployed page of the frontend:
+**NOTE**: The frontend repository can be found [here](https://github.com/tripplen23/fs17-Frontend-project)
+
+Link to deployed Frontend Web UI: [Frontend](https://fs17-frontend-project-zln9-kl59btf0o.vercel.app/)
+
+Link to deployed Backend Server: [Backend](https://sync-ecommerce.azurewebsites.net/index.html)
 
 ## Table of Contents
 
@@ -32,14 +35,14 @@ Link to deployed page of the frontend:
 - [RESTful API design](#restful-api-design)
 - [CLEAN Architecture](#clean-architecture)
 - [Data flow](#data-flow)
-- [Extensive design](#extensive-design)
+- [Testing](#testing)
 
 ## Technologies
 
 - **Frontend**: TailwindCSS, TypeScript, React, Redux Toolkit
 - **Backend**: ASP.NET Core, Entity Framework Core, PostgreSQL
 - **Testing**: Jest for frontend and XUnit, Moq for backend
-- **Deployment**:
+- **Deployment**: Vercel for Frontend, Azure for Backend and Neon.tech for Database
 
 ## Getting start
 
@@ -62,7 +65,7 @@ git clone https://github.com/tripplen23/fs17_CSharp_FullStack.git
   cd Backend_Ecommerce/Ecommerce.WebAPI
 ```
 
-4. Set up your database connection in `appsettings.json` file with these values, replace them with your own database info:
+4. Set up your database connection in `appsettings.json` file with these values, replace them with your own database info and:
 
 ```
   "Logging": {
@@ -81,13 +84,15 @@ git clone https://github.com/tripplen23/fs17_CSharp_FullStack.git
   }
 ```
 
-5. Try to build the application
+5. change database connection configuration in the `Program.cs` to Local host (replace the following line of code to the line 59 in `Program.cs`)
+   `var dataSourceBuilder = new NpgsqlDataSourceBuilder(builder.Configuration.GetConnectionString("Remote"));`
+6. Try to build the application
 
 ```
 dotnet build
 ```
 
-6. If build successfully, run this command to create a new Migrations folder, which stores the snapshot of all the database context changes:
+7. If build successfully, run this command to create a new Migrations folder, which stores the snapshot of all the database context changes:
    _If there is already a folder Migrations in the Web API layer, delete it._
 
 ```
@@ -95,25 +100,26 @@ dotnet ef database drop
 dotnet ef migrations add Create
 ```
 
-7. Apply all the changes to the database
+8. Apply all the changes to the database
 
 ```
 dotnet ef database update
 ```
 
-8. Then run the backend
+9. Then run the backend
 
 ```
 dotnet watch
 ```
 
-9. Then navigate to the Frontend Project, install all the necessary dependencies
+10. Then navigate to the Frontend Project, install all the necessary dependencies
 
 ```
 npm install
 ```
 
-10. Then run the frontend
+11. Navigate to the path inside frontend project /src/redux/newAxiosConfig.ts, then change the `baseURL: "https://sync-ecommerce.azurewebsites.net/api/v1/" ` to `baseURL: "http://localhost:5227/api/v1/" `
+12. Then run the frontend
 
 ```
 npm start
@@ -257,7 +263,7 @@ npm start
 ## Relational database design
 
 ![erd](image/README/erd.png)
-*Click to see clearer*
+_Click to see clearer_
 
 ## Functionalities
 
@@ -313,7 +319,7 @@ npm start
 
 Check [/Endpoints](https://github.com/yuankeMiao/fs17_CSharp_8-BackendTeamwork/tree/main/Endpoints) folder for all api endpoints and the usage, or click the links below to check descriptions and example request & response for each endpoint.
 
-![swaggerUI](https://github.com/yuankeMiao/fs17_CSharp_8-BackendTeamwork/assets/109540749/96c327ac-2ed7-4fc6-ab8d-7a752625f9d8)
+![swaggerUI](image/README/swaggerUI.png)
 
 ## CLEAN Architecture
 
@@ -360,4 +366,4 @@ Run tests:
 dotnet test
 ```
 
-## Extensive design
+![test result](image/README/testResult.png)

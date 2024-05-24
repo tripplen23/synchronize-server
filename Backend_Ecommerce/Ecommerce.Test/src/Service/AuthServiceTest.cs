@@ -53,7 +53,7 @@ namespace Ecommerce.Test.src.Service
             var result = await _authService.LoginAsync(userCredential);
 
             // Assert
-            Assert.Equal(token, result);
+            Assert.Equal(token, result.token);
         }
 
         [Fact]
