@@ -56,7 +56,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers();
 
 // add database service
-var dataSourceBuilder = new NpgsqlDataSourceBuilder(builder.Configuration.GetConnectionString("Localhost"));
+var dataSourceBuilder = new NpgsqlDataSourceBuilder(builder.Configuration.GetConnectionString("Remote")); // Change to "Localhost" to use the local postgre database
 dataSourceBuilder.MapEnum<UserRole>();
 dataSourceBuilder.MapEnum<OrderStatus>();
 var dataSource = dataSourceBuilder.Build();
@@ -153,7 +153,11 @@ builder.Services.AddAuthorization(
 var app = builder.Build();
 
 app.UseSwagger();
-app.UseSwaggerUI();
+app.UseSwaggerUI(options =>
+{
+  options.SwaggerEndpoint("/swagger/v1/swagger.json", "v1");
+  options.RoutePrefix = string.Empty;
+});
 
 app.UseCors("AllowAllOrigins");
 app.UseAuthentication();
