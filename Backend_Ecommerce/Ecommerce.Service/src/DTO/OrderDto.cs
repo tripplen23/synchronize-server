@@ -16,7 +16,7 @@ namespace Ecommerce.Service.src.DTO
     {
         public IEnumerable<OrderProductCreateDto> OrderProducts { get; set; }
         public ShippingInfoCreateDto ShippingInfo { get; set; }
-        public OrderStatus OrderStatus { get; set; }
+        public OrderStatus? OrderStatus { get; set; }
     }
 
     public class OrderUpdateStatusDto

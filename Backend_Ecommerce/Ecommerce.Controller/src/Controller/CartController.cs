@@ -76,6 +76,31 @@ namespace Ecommerce.Controller.src.Controller
         }
         #endregion
 
+        #region GET http://localhost:5227/api/v1/carts/user/:userId
+        // Admin and owner
+        [Authorize]
+        [HttpGet("user/{userId:guid}")]
+        public async Task<ActionResult<CartReadDto>> GetCartByUserIdAsync([FromRoute] Guid userId)
+        {
+            var foundCart = await _cartService.GetCartByUserIdAsync(userId);
+            var authResult = await _authorizationService.AuthorizeAsync(HttpContext.User, foundCart, "AdminOrOwnerCart");
+
+            if (foundCart is null)
+            {
+                return NotFound();
+            }
+
+            if (!authResult.Succeeded)
+            {
+                return Forbid();
+            }
+
+            var result = await _cartService.GetCartByUserIdAsync(userId);
+
+            return Ok(result);
+        }
+        #endregion
+
         #region DELETE http://localhost:5227/api/v1/carts/:cartId
         // Admin or owner
         [Authorize]

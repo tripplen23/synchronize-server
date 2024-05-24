@@ -125,10 +125,6 @@ namespace Ecommerce.Service.src.Service
                 Regex emailRegex = new(emailPattern);
                 if (userUpdateDto.UserEmail is not null && !emailRegex.IsMatch(userUpdateDto.UserEmail)) throw AppException.InvalidInputException("Email is not valid");
 
-                string imagePatten = @"^.*\.(jpg|jpeg|png|gif|bmp)$";
-                Regex imageRegex = new(imagePatten);
-                if (userUpdateDto.UserAvatar is not null && !imageRegex.IsMatch(userUpdateDto.UserAvatar)) throw AppException.InvalidInputException("Avatar can only be jpg|jpeg|png|gif|bmp");
-
                 foundUser.Name = userUpdateDto.UserName ?? foundUser.Name;
                 foundUser.Email = userUpdateDto.UserEmail ?? foundUser.Email;
                 foundUser.Password = userUpdateDto.UserPassword ?? foundUser.Password;
