@@ -19,7 +19,7 @@ The project was done as a final project at [Integrify](https://www.integrify.io/
 
 This repository contains the backend server for an E-Commerce Platform. The project implements RESTful API endpoints for managing users, products, orders, carts, categories, and reviews.
 
-**NOTE**: The frontend repository can be found [here](https://github.com/tripplen23/fs17-Frontend-project)
+**NOTE**: The frontend repository can be found [here](https://github.com/tripplen23/synchronize-client)
 
 Link to deployed Frontend Web UI: [Frontend](https://fs17-frontend-project-zln9-kl59btf0o.vercel.app/)
 
